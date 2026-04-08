@@ -1,0 +1,27 @@
+{
+  "configOverwrite": {
+    "startWithAudioMuted": false,
+    "startWithVideoMuted": false,
+    "prejoinPageEnabled": false,
+    "disableDeepLinking": true,
+    "enableWelcomePage": false,
+    "disableThirdPartyRequests": true,
+    "resolution": 720,
+
+    "constraints": {
+      "video": {
+        "height": {
+          "ideal": 720,
+          "max": 720,
+          "min": 240
+        }
+      }
+    }
+  },
+
+  "interfaceConfigOverwrite": {
+    "TOOLBAR_ALWAYS_VISIBLE": true,
+    "DISABLE_JOIN_LEAVE_NOTIFICATIONS": true,
+    "DEFAULT_BACKGROUND": "#000000"
+  }
+}

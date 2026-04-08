@@ -1,0 +1,27 @@
+{
+  "backgroundColor": "#000000",
+
+  "logoImageUrl": "https://meet.eburon.ai/assets/logo/logo-white.png",
+  "watermarkImageUrl": "https://meet.eburon.ai/assets/logo/logo-white.png",
+
+  "appName": "Orbit Conference",
+  "defaultLanguage": "en",
+
+  "toolbarButtons": [
+    "microphone",
+    "camera",
+    "desktop",
+    "chat",
+    "raisehand",
+    "tileview",
+    "hangup"
+  ],
+
+  "interfaceConfigOverwrite": {
+    "SHOW_JITSI_WATERMARK": false,
+    "SHOW_BRAND_WATERMARK": false,
+    "DEFAULT_BACKGROUND": "#000000",
+    "TOOLBAR_ALWAYS_VISIBLE": true,
+    "DISABLE_JOIN_LEAVE_NOTIFICATIONS": true
+  }
+}

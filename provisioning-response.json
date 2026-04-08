@@ -1,0 +1,6 @@
+{
+  "lobbyEnabled": false,
+  "maxOccupants": 100,
+  "transcriberType": "EGHT_WHISPER",
+  "visitorsEnabled": false
+}
