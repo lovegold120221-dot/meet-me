@@ -6,7 +6,7 @@ const crypto = require('crypto');
 const app = express();
 
 // JaaS Webhook Secret - Get this from JaaS Console > Webhooks > Reveal secret
-const JAAS_WEBHOOK_SECRET = process.env.JAAS_WEBHOOK_SECRET || 'whsec_3ae82e129b8a4b98be6f1976b08f2e02';
+const JAAS_WEBHOOK_SECRET = process.env.JAAS_WEBHOOK_SECRET || 'whsec_e1de07fd5bcb4112a2fbf0e8ea3eb5e3';
 
 // Raw body middleware for signature verification (needed before express.json)
 app.use(express.raw({ type: 'application/json' }));
