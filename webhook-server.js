@@ -114,6 +114,7 @@ app.post('/webhook', (req, res) => {
 
   // Handle specific event types
   switch (eventType) {
+    // ==================== TRANSCRIPTION EVENTS ====================
     case 'TRANSCRIPTION_CHUNK_RECEIVED':
       if (data && data.final) {
         const entry = {
@@ -121,52 +122,163 @@ app.post('/webhook', (req, res) => {
           room: fqn,
           text: data.final,
           language: data.language,
+          messageId: data.messageID,
           participant: {
             id: data.participant?.id,
             name: data.participant?.name,
-            email: data.participant?.email
+            userId: data.participant?.userId,
+            email: data.participant?.email,
+            avatarUrl: data.participant?.avatarUrl
           }
         };
         transcriptions.push(entry);
-        console.log('Transcription saved:', entry.text.substring(0, 100) + '...');
+        console.log('✓ Transcription:', entry.text.substring(0, 80) + (entry.text.length > 80 ? '...' : ''));
       }
       break;
 
+    case 'TRANSCRIPTION_UPLOADED':
+      console.log('✓ Transcription uploaded:', data?.fileName);
+      break;
+
+    // ==================== PARTICIPANT EVENTS ====================
     case 'PARTICIPANT_JOINED':
-      console.log(`Participant joined: ${data?.name || 'Unknown'} (${data?.email || 'no email'})`);
+      console.log('✓ Joined:', data?.name || 'Unknown', `(${data?.email || 'no email'})`, '[JWT:', data?.userId || 'none', ']');
       break;
 
     case 'PARTICIPANT_LEFT':
-      console.log(`Participant left: ${data?.name || 'Unknown'}`);
+      console.log('✓ Left:', data?.name || 'Unknown');
       break;
 
+    case 'PARTICIPANT_JOINED_LOBBY':
+      console.log('⏳ Lobby:', data?.name || 'Unknown');
+      break;
+
+    case 'PARTICIPANT_LEFT_LOBBY':
+      console.log('⏳ Left lobby:', data?.name || 'Unknown');
+      break;
+
+    case 'ROLE_CHANGED':
+      console.log('🔄 Role change:', data?.participantId, '→', data?.role);
+      break;
+
+    // ==================== ROOM LIFECYCLE ====================
     case 'ROOM_CREATED':
-      console.log(`Room created: ${fqn}`);
+      console.log('🏠 Room created:', fqn);
       break;
 
     case 'ROOM_DESTROYED':
-      console.log(`Room destroyed: ${fqn}`);
+      console.log('🏠 Room destroyed:', fqn);
       break;
 
+    // ==================== RECORDING EVENTS ====================
     case 'RECORDING_STARTED':
-      console.log(`Recording started: ${fqn}`);
+      console.log('🔴 Recording started:', fqn);
       break;
 
     case 'RECORDING_ENDED':
-      console.log(`Recording ended: ${fqn}`);
+      console.log('🔴 Recording ended:', fqn, 'Duration:', data?.duration, 'ms');
       break;
 
+    case 'RECORDING_UPLOADED':
+      console.log('🔴 Recording uploaded:', data?.preAuthenticatedLink?.substring(0, 60) + '...');
+      break;
+
+    case 'VIDEO_SEGMENT_UPLOADED':
+      console.log('🎬 Video segment:', data?.fileName);
+      break;
+
+    // ==================== LIVE STREAMING ====================
     case 'LIVE_STREAM_STARTED':
-      console.log(`Live stream started: ${fqn}`);
+      console.log('📡 Live stream started:', fqn, '→', data?.liveStreamKey);
       break;
 
     case 'LIVE_STREAM_ENDED':
-      console.log(`Live stream ended: ${fqn}`);
+      console.log('📡 Live stream ended:', fqn);
       break;
 
+    // ==================== DOCUMENT/FILE EVENTS ====================
+    case 'DOCUMENT_ADDED':
+      console.log('📄 Document added:', data?.fileName, `(${(data?.fileSize / 1024).toFixed(1)} KB)`);
+      console.log('   Link expires:', new Date(data?.linkExpiration).toLocaleString());
+      break;
+
+    case 'DOCUMENT_DELETED':
+      console.log('🗑️ Document deleted:', data?.fileName, 'by', data?.initiatorId);
+      break;
+
+    // ==================== CHAT & MESSAGING ====================
+    case 'CHAT_UPLOADED':
+      console.log('💬 Chat history uploaded');
+      break;
+
+    case 'REACTIONS':
+      console.log('😀 Reaction:', data?.reaction, 'from', data?.participantName);
+      break;
+
+    case 'AGGREGATED_REACTIONS':
+      console.log('📊 Aggregated reactions:', JSON.stringify(data?.reactions));
+      break;
+
+    // ==================== POLLS ====================
+    case 'POLL_CREATED':
+      console.log('📊 Poll created:', data?.question);
+      break;
+
+    case 'POLL_ANSWER':
+      console.log('📊 Poll answer:', data?.answer, 'from', data?.participantName);
+      break;
+
+    // ==================== CALL EVENTS ====================
+    case 'SIP_CALL_IN_STARTED':
+    case 'DIAL_IN_STARTED':
+      console.log('📞 Dial-in started:', data?.callerNumber);
+      break;
+
+    case 'SIP_CALL_IN_ENDED':
+    case 'DIAL_IN_ENDED':
+      console.log('📞 Dial-in ended:', data?.callerNumber, 'Duration:', data?.duration, 's');
+      break;
+
+    case 'SIP_CALL_OUT_STARTED':
+    case 'DIAL_OUT_STARTED':
+      console.log('📤 Dial-out started:', data?.destinationNumber);
+      break;
+
+    case 'SIP_CALL_OUT_ENDED':
+    case 'DIAL_OUT_ENDED':
+      console.log('📤 Dial-out ended:', data?.destinationNumber, 'Duration:', data?.duration, 's');
+      break;
+
+    // ==================== ANALYTICS & STATS ====================
+    case 'SPEAKER_STATS':
+      console.log('📈 Speaker stats:', data?.dominantSpeakerId, 'talked for', data?.totalDominantSpeakerTime, 'ms');
+      break;
+
+    case 'RTCSTATS_UPLOADED':
+      console.log('📊 RTC stats uploaded for session:', sessionId);
+      break;
+
+    case 'USAGE':
+      console.log('📊 Usage metrics:', JSON.stringify(data));
+      break;
+
+    case 'SCREEN_SHARING_HISTORY':
+      console.log('🖥️ Screen sharing sessions:', data?.sessions?.length || 0);
+      break;
+
+    // ==================== FEEDBACK ====================
+    case 'FEEDBACK':
+      console.log('💭 Feedback:', data?.score, 'stars -', data?.comment);
+      break;
+
+    // ==================== SETTINGS ====================
+    case 'SETTINGS_PROVISIONING':
+      console.log('⚙️ Settings provisioning request:', fqn);
+      break;
+
+    // ==================== DEFAULT ====================
     default:
-      // Log other events but don't process them
-      console.log(`Event received (not processed): ${eventType}`);
+      console.log('📨 Event:', eventType, '- Session:', sessionId?.substring(0, 8));
   }
 
   // Always return 200 OK to acknowledge receipt
