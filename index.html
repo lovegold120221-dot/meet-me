@@ -8,9 +8,15 @@
   <script src='https://8x8.vc/vpaas-magic-cookie-5cf58fa3a21442dd8bc95136bb19c9a5/external_api.js' async></script>
   <style>
     html,
-    body,
-    #jaas-container {
+    body {
       height: 100%;
+      margin: 0;
+      padding: 0;
+      background: #1a1a2e;
+    }
+
+    #jaas-container {
+      height: calc(100% - 80px);
       margin: 0;
       padding: 0;
     }
@@ -26,13 +32,359 @@
       height: 68px;
       z-index: 1000;
     }
+
+    /* Transcription Caption Bar */
+    #transcription-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      background: linear-gradient(180deg, rgba(26, 26, 46, 0.95) 0%, rgba(15, 15, 35, 1) 100%);
+      border-top: 2px solid #00d4ff;
+      display: flex;
+      flex-direction: column;
+      z-index: 999;
+    }
+
+    /* Caption Light Animation Bar */
+    .caption-light-container {
+      height: 4px;
+      width: 100%;
+      background: rgba(0, 212, 255, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .caption-light {
+      position: absolute;
+      top: 0;
+      left: -100px;
+      width: 100px;
+      height: 100%;
+      background: linear-gradient(90deg,
+          transparent 0%,
+          #00d4ff 20%,
+          #7b2cbf 50%,
+          #00d4ff 80%,
+          transparent 100%);
+      box-shadow: 0 0 20px #00d4ff, 0 0 40px #7b2cbf;
+      animation: captionPulse 2s ease-in-out infinite;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .caption-light.active {
+      opacity: 1;
+    }
+
+    @keyframes captionPulse {
+      0% {
+        left: -100px;
+        opacity: 0;
+      }
+
+      10% {
+        opacity: 1;
+      }
+
+      90% {
+        opacity: 1;
+      }
+
+      100% {
+        left: 100%;
+        opacity: 0;
+      }
+    }
+
+    /* Transcription Text Area */
+    .transcription-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      overflow: hidden;
+    }
+
+    #transcription-text {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 16px;
+      color: #fff;
+      line-height: 1.5;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+      transition: all 0.3s;
+    }
+
+    #transcription-text.interim {
+      color: #ffa502;
+      text-shadow: 0 0 10px rgba(255, 165, 2, 0.5);
+    }
+
+    #transcription-text.speaking {
+      color: #00d4ff;
+    }
+
+    .transcription-meta {
+      font-size: 12px;
+      color: #74b9ff;
+      margin-left: 16px;
+      white-space: nowrap;
+    }
+
+    /* Recording Indicator */
+    .recording-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-right: 16px;
+      padding: 6px 12px;
+      background: rgba(255, 71, 87, 0.2);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 71, 87, 0.5);
+    }
+
+    .recording-dot {
+      width: 8px;
+      height: 8px;
+      background: #ff4757;
+      border-radius: 50%;
+      animation: pulse 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.5;
+        transform: scale(1.2);
+      }
+    }
+
+    .recording-text {
+      font-size: 11px;
+      color: #ff4757;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Control Buttons */
+    .transcription-controls {
+      display: flex;
+      gap: 10px;
+      margin-left: auto;
+    }
+
+    .transcription-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    .btn-start {
+      background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+      color: white;
+    }
+
+    .btn-start:hover {
+      transform: scale(1.05);
+    }
+
+    .btn-stop {
+      background: #ff4757;
+      color: white;
+    }
+
+    .btn-stop:disabled,
+    .btn-start:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Empty State */
+    .empty-state {
+      color: #636e72;
+      font-style: italic;
+    }
+
+    /* Speaker colors */
+    .speaker-0 {
+      color: #00d4ff;
+    }
+
+    .speaker-1 {
+      color: #ff6b9d;
+    }
+
+    .speaker-2 {
+      color: #c8e6c9;
+    }
+
+    /* Floating Share Icon */
+    #floating-share-btn {
+      position: fixed;
+      bottom: 170px;
+      right: 24px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2ed573, #7bed9f);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(46, 213, 115, 0.4);
+      z-index: 1001;
+      transition: all 0.3s ease;
+    }
+
+    #floating-share-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 30px rgba(46, 213, 115, 0.6);
+    }
+
+    #floating-share-btn svg {
+      width: 24px;
+      height: 24px;
+      color: white;
+    }
+
+    #floating-share-btn.copied {
+      background: linear-gradient(135deg, #3742fa, #5352ed);
+    }
+
+    /* Floating Transcription Icon */
+    #floating-transcribe-btn {
+      position: fixed;
+      bottom: 100px;
+      right: 24px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(0, 212, 255, 0.4);
+      z-index: 1001;
+      transition: all 0.3s ease;
+    }
+
+    #floating-transcribe-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 30px rgba(0, 212, 255, 0.6);
+    }
+
+    #floating-transcribe-btn.recording {
+      background: linear-gradient(135deg, #ff4757, #ff6b6b);
+      animation: pulse-record 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse-record {
+
+      0%,
+      100% {
+        box-shadow: 0 4px 20px rgba(255, 71, 87, 0.4);
+      }
+
+      50% {
+        box-shadow: 0 4px 30px rgba(255, 71, 87, 0.8);
+      }
+    }
+
+    #floating-transcribe-btn svg {
+      width: 24px;
+      height: 24px;
+      color: white;
+    }
+
+    /* Hidden state for recording indicator */
+    .hidden {
+      display: none;
+    }
+
+    /* Firebase save indicator */
+    .firebase-indicator {
+      position: fixed;
+      bottom: 188px;
+      right: 24px;
+      padding: 8px 14px;
+      background: rgba(0, 212, 255, 0.15);
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      border-radius: 20px;
+      font-size: 11px;
+      color: #00d4ff;
+      display: none;
+      align-items: center;
+      gap: 6px;
+      z-index: 1000;
+    }
+
+    .firebase-indicator.visible {
+      display: flex;
+    }
+
+    .firebase-indicator.saved {
+      background: rgba(46, 213, 115, 0.15);
+      border-color: rgba(46, 213, 115, 0.3);
+      color: #2ed573;
+    }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/@deepgram/sdk@3.11.0/dist/index.umd.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
   <script type="text/javascript">
     window.onload = () => {
+      // Get room from URL parameter or use default
+      const urlParams = new URLSearchParams(window.location.search);
+      const roomName = urlParams.get('room') || 'Orbit-Conference';
+      const fullRoomName = `vpaas-magic-cookie-5cf58fa3a21442dd8bc95136bb19c9a5/${roomName}`;
+
+      // Custom invite URL for branding
+      const inviteUrl = `https://meet.eburon.ai/?room=${encodeURIComponent(roomName)}`;
+
       const api = new JitsiMeetExternalAPI("8x8.vc", {
-        roomName: "vpaas-magic-cookie-5cf58fa3a21442dd8bc95136bb19c9a5/Orbit Conference",
+        roomName: fullRoomName,
         parentNode: document.querySelector('#jaas-container'),
-        jwt: "eyJraWQiOiJ2cGFhcy1tYWdpYy1jb29raWUtNWNmNThmYTNhMjE0NDJkZDhiYzk1MTM2YmIxOWM5YTUvNDcyOTM3LVNBTVBMRV9BUFAiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6ImNoYXQiLCJpYXQiOjE3NzU2ODIyMjYsImV4cCI6MTc3NTY4OTQyNiwibmJmIjoxNzc1NjgyMjIxLCJzdWIiOiJ2cGFhcy1tYWdpYy1jb29raWUtNWNmNThmYTNhMjE0NDJkZDhiYzk1MTM2YmIxOWM5YTUiLCJjb250ZXh0Ijp7ImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOmZhbHNlLCJmaWxlLXVwbG9hZCI6ZmFsc2UsIm91dGJvdW5kLWNhbGwiOmZhbHNlLCJzaXAtb3V0Ym91bmQtY2FsbCI6ZmFsc2UsInRyYW5zY3JpcHRpb24iOmZhbHNlLCJsaXN0LXZpc2l0b3JzIjpmYWxzZSwicmVjb3JkaW5nIjpmYWxzZSwiZmxpcCI6ZmFsc2V9LCJ1c2VyIjp7ImhpZGRlbi1mcm9tLXJlY29yZGVyIjpmYWxzZSwibW9kZXJhdG9yIjp0cnVlLCJuYW1lIjoiVGVzdCBVc2VyIiwiaWQiOiJnb29nbGUtb2F1dGgyfDEwMTMzNDg5MTMyMDgxNDg4Njg5MiIsImF2YXRhciI6IiIsImVtYWlsIjoidGVzdC51c2VyQGNvbXBhbnkuY29tIn19LCJyb29tIjoiKiJ9.A5Y24AR4DAu548MhHlyCsanDMhD_N60ORjFIJTkj07GAkSjrPzsnwOn_L4n307EB5GDuZp_J-bLncLzL-N_uC_zGW5bqSpFiHh88X8kHPhsfutuu6SzYqSGvO4hpyB8TnN5SPsFXFY8rwW_DdKPcxd9OdGMa4H9Aaqs7H6US5i1sbPxHeSZShNAvD6NsnFvI8LN4hbSjPspQkbnrK2YUCCNkT3gcsdcRj8bt1_hmVRnM_X95cA3DpZK-KwqtgWvgd5lEwcOlhTcIFdaTgoLpjl3QD8sTQFiXoslH6YPAZSfyG73rg-ADUIbYgiv-qy3NRb3qB7NTdHVijTfLB_KQaA"
+        jwt: "eyJraWQiOiJ2cGFhcy1tYWdpYy1jb29raWUtNWNmNThmYTNhMjE0NDJkZDhiYzk1MTM2YmIxOWM5YTUvNDcyOTM3LVNBTVBMRV9BUFAiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6ImNoYXQiLCJpYXQiOjE3NzU2ODgwNTgsImV4cCI6MTc3NTY5NTI1OCwibmJmIjoxNzc1Njg4MDUzLCJzdWIiOiJ2cGFhcy1tYWdpYy1jb29raWUtNWNmNThmYTNhMjE0NDJkZDhiYzk1MTM2YmIxOWM5YTUiLCJjb250ZXh0Ijp7ImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOnRydWUsImZpbGUtdXBsb2FkIjp0cnVlLCJvdXRib3VuZC1jYWxsIjp0cnVlLCJzaXAtb3V0Ym91bmQtY2FsbCI6dHJ1ZSwidHJhbnNjcmlwdGlvbiI6dHJ1ZSwibGlzdC12aXNpdG9ycyI6dHJ1ZSwicmVjb3JkaW5nIjp0cnVlLCJmbGlwIjpmYWxzZX0sInVzZXIiOnsiaGlkZGVuLWZyb20tcmVjb3JkZXIiOnRydWUsIm1vZGVyYXRvciI6dHJ1ZSwibmFtZSI6ImNvZGV4eHhob3N0IiwiaWQiOiJnb29nbGUtb2F1dGgyfDEwMTMzNDg5MTMyMDgxNDg4Njg5MiIsImF2YXRhciI6IiIsImVtYWlsIjoiY29kZXh4eGhvc3RAZ21haWwuY29tIn19LCJyb29tIjoiKiJ9.XYI6Mo44_mPwYcnJKst1Aw84kK-ye2nJMNOWjjioZDK18cnL1BVRw2WvfzSvn37VlrSUhdBBxZOvFgHte8jYe9LuTQ3BfBZA-g4hvIrfWM5V1zm9L3sYSgK04E8_Nxz-4c2dlwsUII_jiuDlpTg6RMyGvku80BsaVZC863edGzGhN8wHHb2zeEqbL8BeUUcV3OQWD9gx1a87N2kxzMwUQy-Wpp_RkFlsiICZD1x76JBd3m0fB4X1dKm9kUpDhMy578a08PBMhQE6-9fVuv97UjGMqGdMCg0tGvXhN-iPqdm5UVxMD7b55Qod_i5PjPEmNb_OK9Dougt1bblTT-bxAw",
+        configOverwrite: {
+          prejoinPageEnabled: false,
+          startWithAudioMuted: false,
+          startWithVideoMuted: false,
+          disableDeepLinking: true,
+          inviteUrl: inviteUrl
+        },
+        interfaceConfigOverwrite: {
+          SHOW_JITSI_WATERMARK: false,
+          SHOW_BRAND_WATERMARK: false,
+          DEFAULT_BACKGROUND: '#1a1a2e',
+          TOOLBAR_BUTTONS: [
+            'microphone', 'camera', 'closedcaptions', 'desktop', 'embedmeeting',
+            'fullscreen', 'fodeviceselection', 'hangup', 'profile', 'chat',
+            'recording', 'livestreaming', 'etherpad', 'sharedvideo', 'settings',
+            'videoquality', 'filmstrip', 'invite', 'feedback', 'stats', 'shortcuts',
+            'tileview', 'videobackgroundblur', 'download', 'help', 'mute-everyone',
+            'security'
+          ]
+        }
       });
 
       // Capture transcription in real-time
@@ -67,6 +419,33 @@
         }
       }, 30000);
 
+      // Firebase Initialization
+      const firebaseConfig = {
+        apiKey: "AIzaSyCjVuc2VD5YvJE_4PBUJATmKiJzFC1ex8c",
+        authDomain: "aitek2023-8f504.firebaseapp.com",
+        databaseURL: "https://aitek2023-8f504-default-rtdb.firebaseio.com",
+        projectId: "aitek2023-8f504",
+        storageBucket: "aitek2023-8f504.appspot.com",
+        messagingSenderId: "570516064142",
+        appId: "1:570516064142:web:09cd39d822af112f5886df",
+        measurementId: "G-BR1YM1W0E1"
+      };
+      firebase.initializeApp(firebaseConfig);
+      transcriptionRef = firebase.database().ref('transcriptions');
+      meetingId = new URLSearchParams(window.location.search).get('room') || 'default-room';
+
+      // Deepgram Real-time Transcription
+      initializeDeepgramTranscription();
+
+      // Wire up floating buttons
+      document.getElementById('floating-share-btn').addEventListener('click', copyInviteLink);
+      document.getElementById('floating-transcribe-btn').addEventListener('click', toggleFloatingTranscription);
+
+      // Generate user ID if not exists
+      if (!localStorage.getItem('orbit-user-id')) {
+        localStorage.setItem('orbit-user-id', 'user-' + Math.random().toString(36).substr(2, 9));
+      }
+
       // Auto-start transcription when moderator joins
       let transcriptionStarted = false;
 
@@ -90,12 +469,339 @@
         }, 2000);
       });
     }
+
+    // Deepgram Transcription Integration
+    let deepgramSocket = null;
+    let audioContext = null;
+    let mediaStream = null;
+    let audioProcessor = null;
+    let audioSource = null;
+    let isRecording = false;
+    let transcriptionRef = null;
+    let meetingId = 'default-room';
+
+    // Save transcription to Firebase
+    function saveToFirebase(transcript, speaker, isFinal) {
+      if (!transcriptionRef || !transcript || !isFinal) return;
+
+      const entry = {
+        text: transcript,
+        speaker: speaker !== undefined ? speaker : null,
+        timestamp: firebase.database.ServerValue.TIMESTAMP,
+        meetingId: meetingId,
+        userId: localStorage.getItem('orbit-user-id') || 'anonymous-' + Math.random().toString(36).substr(2, 9)
+      };
+
+      transcriptionRef.child(meetingId).push(entry)
+        .then(() => {
+          showFirebaseIndicator('saved');
+          console.log('Transcription saved to Firebase:', entry);
+        })
+        .catch(err => {
+          console.error('Firebase save error:', err);
+          showFirebaseIndicator('error');
+        });
+    }
+
+    // Show save indicator
+    function showFirebaseIndicator(status) {
+      const indicator = document.getElementById('firebase-indicator');
+      if (!indicator) return;
+
+      indicator.classList.add('visible');
+      if (status === 'saved') {
+        indicator.classList.add('saved');
+        indicator.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Saved to cloud';
+      } else if (status === 'error') {
+        indicator.classList.remove('saved');
+        indicator.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 8v4m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg> Save failed';
+      } else {
+        indicator.classList.remove('saved');
+        indicator.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 2a10 10 0 100 20 10 10 0 000-20z"/><path d="M12 6v6l4 2"/></svg> Saving...';
+      }
+
+      setTimeout(() => {
+        indicator.classList.remove('visible');
+        indicator.classList.remove('saved');
+      }, 2000);
+    }
+
+    // Copy branded invite link to clipboard
+    function copyInviteLink() {
+      const btn = document.getElementById('floating-share-btn');
+      const urlParams = new URLSearchParams(window.location.search);
+      const roomName = urlParams.get('room') || 'Orbit-Conference';
+      const inviteUrl = `https://meet.eburon.ai/?room=${encodeURIComponent(roomName)}`;
+
+      navigator.clipboard.writeText(inviteUrl).then(() => {
+        // Visual feedback
+        btn.classList.add('copied');
+        btn.title = 'Copied!';
+
+        // Show temporary tooltip
+        const originalContent = btn.innerHTML;
+        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>';
+
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.title = 'Copy Invite Link';
+          btn.innerHTML = originalContent;
+        }, 2000);
+
+        console.log('Invite link copied:', inviteUrl);
+      }).catch(err => {
+        console.error('Failed to copy:', err);
+        // Fallback: show alert
+        alert(`Meeting invite link:\n${inviteUrl}`);
+      });
+    }
+
+    // Floating button toggle
+    function toggleFloatingTranscription() {
+      const btn = document.getElementById('floating-transcribe-btn');
+      const startBtn = document.getElementById('startTranscription');
+      const stopBtn = document.getElementById('stopTranscription');
+
+      if (isRecording) {
+        stopDeepgramTranscription();
+        btn.classList.remove('recording');
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+      } else {
+        startDeepgramTranscription().then(() => {
+          btn.classList.add('recording');
+          startBtn.disabled = true;
+          stopBtn.disabled = false;
+        }).catch(err => {
+          console.error('Failed to start transcription:', err);
+          alert('Failed to start transcription: ' + err.message);
+        });
+      }
+    }
+
+    function initializeDeepgramTranscription() {
+      const startBtn = document.getElementById('startTranscription');
+      const stopBtn = document.getElementById('stopTranscription');
+      const captionLight = document.getElementById('caption-light');
+      const transcriptionText = document.getElementById('transcription-text');
+
+      startBtn.addEventListener('click', async () => {
+        try {
+          await startDeepgramTranscription();
+          startBtn.disabled = true;
+          stopBtn.disabled = false;
+          captionLight.classList.add('active');
+          transcriptionText.textContent = 'Listening...';
+          transcriptionText.classList.add('speaking');
+          isRecording = true;
+        } catch (err) {
+          console.error('Failed to start transcription:', err);
+          transcriptionText.textContent = 'Error: ' + err.message;
+        }
+      });
+
+      stopBtn.addEventListener('click', () => {
+        stopDeepgramTranscription();
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        captionLight.classList.remove('active');
+        transcriptionText.textContent = 'Transcription stopped';
+        transcriptionText.classList.remove('interim', 'speaking');
+        isRecording = false;
+      });
+    }
+
+    async function startDeepgramTranscription() {
+      // Get microphone access
+      mediaStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          sampleRate: 16000,
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true
+        }
+      });
+
+      // Initialize Deepgram - use environment variable or prompt for key
+      const apiKey = window.DEEPGRAM_API_KEY || prompt('Enter Deepgram API key:');
+      if (!apiKey) throw new Error('API key required');
+
+      const deepgramClient = new deepgram.DeepgramClient({ apiKey });
+
+      deepgramSocket = await deepgramClient.listen.v1.createConnection({
+        model: 'nova-3',
+        language: 'multi',
+        smart_format: true,
+        interim_results: true,
+        endpointing: 10,
+        diarize: true,
+        punctuate: true,
+        vad_events: true,
+        encoding: 'linear16',
+        sample_rate: 16000,
+        channels: 1,
+      });
+
+      const transcriptionText = document.getElementById('transcription-text');
+      const captionLight = document.getElementById('caption-light');
+      const speakerBadge = document.getElementById('speaker-badge');
+
+      deepgramSocket.on('message', (data) => {
+        if (data.type === 'SpeechStarted') {
+          captionLight.classList.add('active');
+          return;
+        }
+        if (data.type === 'Results' && data.channel?.alternatives?.[0]) {
+          const transcript = data.channel.alternatives[0].transcript;
+          const words = data.channel.alternatives[0].words;
+          const speaker = words?.[0]?.speaker;
+          const isFinal = data.is_final;
+
+          if (transcript) {
+            transcriptionText.textContent = transcript;
+            transcriptionText.className = isFinal ? '' : 'interim';
+
+            // Update speaker badge
+            if (speaker !== undefined) {
+              speakerBadge.textContent = `Speaker ${speaker}`;
+              speakerBadge.className = `transcription-meta speaker-${speaker % 3}`;
+            }
+
+            // Trigger caption light animation on speech
+            if (!isFinal) {
+              captionLight.style.animation = 'none';
+              setTimeout(() => {
+                captionLight.style.animation = '';
+              }, 10);
+            }
+
+            // Save to Firebase when final
+            if (isFinal) {
+              saveToFirebase(transcript, speaker, true);
+            }
+          }
+        }
+      });
+
+      deepgramSocket.on('close', () => {
+        console.log('Deepgram connection closed');
+      });
+
+      deepgramSocket.on('error', (err) => {
+        console.error('Deepgram error:', err);
+        transcriptionText.textContent = 'Connection error';
+      });
+
+      await deepgramSocket.connect();
+      await deepgramSocket.waitForOpen();
+
+      // Set up audio processing
+      audioContext = new AudioContext({ sampleRate: 16000 });
+      const source = audioContext.createMediaStreamSource(mediaStream);
+      const processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+      source.connect(processor);
+      processor.connect(audioContext.destination);
+
+      processor.onaudioprocess = (e) => {
+        if (!deepgramSocket) return;
+
+        const inputData = e.inputBuffer.getChannelData(0);
+        // Convert Float32Array to Int16Array
+        const int16Data = new Int16Array(inputData.length);
+        for (let i = 0; i < inputData.length; i++) {
+          int16Data[i] = Math.max(-32768, Math.min(32767, inputData[i] * 32768));
+        }
+        // Send as ArrayBuffer (not Buffer - this is browser-safe)
+        deepgramSocket.sendMedia(int16Data.buffer);
+      };
+
+      audioProcessor = processor;
+      audioSource = source;
+    }
+
+    function stopDeepgramTranscription() {
+      if (audioProcessor) {
+        audioProcessor.disconnect();
+        audioSource.disconnect();
+        audioProcessor = null;
+        audioSource = null;
+      }
+      if (audioContext) {
+        audioContext.close();
+        audioContext = null;
+      }
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+        mediaStream = null;
+      }
+      if (deepgramSocket) {
+        deepgramSocket.disconnect();
+        deepgramSocket = null;
+      }
+    }
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      stopDeepgramTranscription();
+    });
   </script>
 </head>
 
 <body>
   <img id="logo" src="assets/logo/logo-white.png" alt="Eburon Meeting">
-  <div id="jaas-container" />
+  <div id="jaas-container"></div>
+
+  <!-- Floating Transcription Toggle Button -->
+  <div id="firebase-indicator" class="firebase-indicator">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+      <path d="M12 2a10 10 0 100 20 10 10 0 000-20z" />
+      <path d="M12 6v6l4 2" />
+    </svg>
+    Saving...
+  </div>
+  <button id="floating-share-btn" title="Copy Invite Link">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+    </svg>
+  </button>
+  <button id="floating-transcribe-btn" title="Toggle Transcription">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+      <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+    </svg>
+  </button>
+
+  <!-- Deepgram Transcription Bar -->
+  <div id="transcription-bar">
+    <!-- Caption Light Animation -->
+    <div class="caption-light-container">
+      <div class="caption-light" id="caption-light"></div>
+    </div>
+
+    <!-- Transcription Content -->
+    <div class="transcription-content">
+      <div class="recording-indicator hidden" id="recording-indicator">
+        <div class="recording-dot"></div>
+        <span class="recording-text">Live</span>
+      </div>
+
+      <div id="transcription-text" class="empty-state">
+        Click Start to begin transcription...
+      </div>
+
+      <span class="transcription-meta" id="speaker-badge"></span>
+
+      <div class="transcription-controls">
+        <button class="transcription-btn btn-start" id="startTranscription">Start Transcription</button>
+        <button class="transcription-btn btn-stop" id="stopTranscription" disabled>Stop</button>
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>

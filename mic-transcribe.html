@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Microphone to Deepgram Transcription</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f0f23;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .controls {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    button {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    #startBtn {
+      background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+      color: white;
+    }
+
+    #startBtn:hover:not(:disabled) {
+      transform: scale(1.05);
+    }
+
+    #stopBtn {
+      background: #ff4757;
+      color: white;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .status {
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      background: #1a1a2e;
+      margin-bottom: 1.5rem;
+    }
+
+    .status.recording {
+      background: #ff4757;
+      color: white;
+    }
+
+    .status.connected {
+      background: #2ed573;
+      color: white;
+    }
+
+    .transcript-container {
+      width: 100%;
+      max-width: 800px;
+      background: #1a1a2e;
+      border-radius: 12px;
+      padding: 1.5rem;
+      min-height: 300px;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .transcript-entry {
+      padding: 0.75rem;
+      margin-bottom: 0.5rem;
+      border-radius: 8px;
+      background: #0f0f23;
+      border-left: 3px solid transparent;
+    }
+
+    .transcript-entry.final {
+      border-left-color: #2ed573;
+    }
+
+    .transcript-entry.interim {
+      border-left-color: #ffa502;
+      opacity: 0.7;
+    }
+
+    .transcript-meta {
+      font-size: 0.75rem;
+      color: #74b9ff;
+      margin-bottom: 0.25rem;
+    }
+
+    .transcript-text {
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .speaker-0 {
+      color: #00d4ff;
+    }
+
+    .speaker-1 {
+      color: #ff6b9d;
+    }
+
+    .speaker-2 {
+      color: #c8e6c9;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #636e72;
+      padding: 3rem;
+    }
+
+    .waveform {
+      display: flex;
+      gap: 3px;
+      align-items: center;
+      height: 30px;
+      margin-bottom: 1rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .waveform.active {
+      opacity: 1;
+    }
+
+    .bar {
+      width: 4px;
+      background: linear-gradient(to top, #00d4ff, #7b2cbf);
+      border-radius: 2px;
+      animation: wave 0.5s ease-in-out infinite alternate;
+    }
+
+    .bar:nth-child(1) {
+      height: 10px;
+      animation-delay: 0s;
+    }
+
+    .bar:nth-child(2) {
+      height: 20px;
+      animation-delay: 0.1s;
+    }
+
+    .bar:nth-child(3) {
+      height: 15px;
+      animation-delay: 0.2s;
+    }
+
+    .bar:nth-child(4) {
+      height: 25px;
+      animation-delay: 0.3s;
+    }
+
+    .bar:nth-child(5) {
+      height: 12px;
+      animation-delay: 0.4s;
+    }
+
+    @keyframes wave {
+      to {
+        transform: scaleY(1.5);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h1>🎤 Deepgram Real-Time Transcription</h1>
+
+  <div class="controls">
+    <button id="startBtn">Start Recording</button>
+    <button id="stopBtn" disabled>Stop</button>
+  </div>
+
+  <div class="status" id="status">Click Start to begin</div>
+
+  <div class="waveform" id="waveform">
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+  </div>
+
+  <div class="transcript-container" id="transcripts">
+    <div class="empty-state">Transcriptions will appear here...</div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@deepgram/sdk@3.11.0/dist/index.umd.min.js"></script>
+  <script>
+    const DEEPGRAM_API_KEY = 'bc97222ef387c2ec2c5aeaf43ce93a7af74ad103';
+
+    let socket = null;
+    let mediaRecorder = null;
+    let audioContext = null;
+    let stream = null;
+
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const status = document.getElementById('status');
+    const waveform = document.getElementById('waveform');
+    const transcripts = document.getElementById('transcripts');
+
+    // Clear and show empty state
+    const clearTranscripts = () => {
+      transcripts.innerHTML = '<div class="empty-state">Transcriptions will appear here...</div>';
+    };
+
+    // Add transcript entry
+    const addTranscript = (text, isFinal, speaker, timestamp) => {
+      const emptyState = transcripts.querySelector('.empty-state');
+      if (emptyState) emptyState.remove();
+
+      // Remove previous interim entries for cleaner UI
+      if (!isFinal) {
+        const prevInterims = transcripts.querySelectorAll('.interim');
+        prevInterims.forEach(el => el.remove());
+      }
+
+      const entry = document.createElement('div');
+      entry.className = `transcript-entry ${isFinal ? 'final' : 'interim'}`;
+
+      const speakerClass = `speaker-${speaker % 3}`;
+      const speakerLabel = speaker !== undefined ? `Speaker ${speaker}` : 'Unknown';
+
+      entry.innerHTML = `
+        <div class="transcript-meta">${isFinal ? '[ FINAL ]' : '[Interim]'} • ${speakerLabel} • ${new Date().toLocaleTimeString()}</div>
+        <div class="transcript-text ${speakerClass}">${text}</div>
+      `;
+
+      transcripts.appendChild(entry);
+      transcripts.scrollTop = transcripts.scrollHeight;
+    };
+
+    startBtn.addEventListener('click', async () => {
+      try {
+        // Get microphone access
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            sampleRate: 16000,
+            channelCount: 1,
+            echoCancellation: true,
+            noiseSuppression: true
+          }
+        });
+
+        status.textContent = 'Connecting to Deepgram...';
+        status.className = 'status';
+
+        // Initialize Deepgram - SDK loaded from CDN exposes deepgram global
+        const deepgramClient = new deepgram.DeepgramClient({ apiKey: DEEPGRAM_API_KEY });
+
+        socket = await deepgramClient.listen.v1.createConnection({
+          model: 'nova-2',
+          language: 'multi',
+          smart_format: true,
+          interim_results: true,
+          endpointing: 10,
+          diarize: true,
+          vad_events: true,
+          encoding: 'linear16',
+          sample_rate: 16000,
+          channels: 1,
+        });
+
+        socket.on('message', (data) => {
+          if (data.type === 'SpeechStarted') {
+            console.log(`[Event] SpeechStarted (${data.timestamp}s)`);
+            return;
+          }
+          if (data.type === 'Results' && data.channel?.alternatives?.[0]) {
+            const transcript = data.channel.alternatives[0].transcript;
+            const words = data.channel.alternatives[0].words;
+            const speaker = words?.[0]?.speaker;
+
+            if (transcript) {
+              addTranscript(transcript, data.is_final, speaker, data.timestamp);
+            }
+          }
+        });
+
+        socket.on('close', () => {
+          status.textContent = 'Disconnected';
+          status.className = 'status';
+          waveform.classList.remove('active');
+        });
+
+        socket.on('error', (err) => {
+          console.error('Deepgram error:', err);
+          status.textContent = 'Error: ' + (err.message || 'Connection failed');
+        });
+
+        await socket.connect();
+        await socket.waitForOpen();
+
+        status.textContent = '🔴 Recording & Transcribing...';
+        status.className = 'status recording';
+        waveform.classList.add('active');
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+
+        // Set up audio processing
+        audioContext = new AudioContext({ sampleRate: 16000 });
+        const source = audioContext.createMediaStreamSource(stream);
+        const processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+        source.connect(processor);
+        processor.connect(audioContext.destination);
+
+        processor.onaudioprocess = (e) => {
+          if (!socket || socket.readyState !== 1) return;
+
+          const inputData = e.inputBuffer.getChannelData(0);
+          // Convert Float32Array to Int16Array
+          const int16Data = new Int16Array(inputData.length);
+          for (let i = 0; i < inputData.length; i++) {
+            int16Data[i] = Math.max(-32768, Math.min(32767, inputData[i] * 32768));
+          }
+          socket.sendMedia(Buffer.from(int16Data.buffer));
+        };
+
+        // Store for cleanup
+        window.audioProcessor = processor;
+        window.audioSource = source;
+
+      } catch (err) {
+        console.error('Error starting:', err);
+        status.textContent = 'Error: ' + err.message;
+        status.className = 'status';
+      }
+    });
+
+    stopBtn.addEventListener('click', () => {
+      // Stop audio processing
+      if (window.audioProcessor) {
+        window.audioProcessor.disconnect();
+        window.audioSource.disconnect();
+      }
+      if (audioContext) {
+        audioContext.close();
+      }
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+
+      // Close Deepgram connection
+      if (socket) {
+        socket.disconnect();
+      }
+
+      waveform.classList.remove('active');
+      status.textContent = 'Stopped';
+      status.className = 'status';
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    });
+  </script>
+</body>
+
+</html>
