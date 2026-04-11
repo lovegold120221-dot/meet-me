@@ -1,721 +1,545 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Orbit Conference</title>
-  <script src='https://8x8.vc/vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3/external_api.js' async></script>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      color: white;
-      height: 100vh;
-      overflow: hidden;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src='https://8x8.vc/vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3/external_api.js' async></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    /* Main Container */
-    .main-container {
-      width: 100%;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-    }
+        html, body {
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+        }
 
-    /* Header */
-    .header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 60px;
-      background: rgba(0, 0, 0, 0.3);
-      -webkit-backdrop-filter: blur(10px);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      display: flex;
-      align-items: center;
-      padding: 0 20px;
-      z-index: 1000;
-    }
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
 
-    .logo img {
-      width: 32px;
-      height: 32px;
-      border-radius: 6px;
-    }
+        .sidebar {
+            width: 320px;
+            min-width: 320px;
+            background: #1a1a1a;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, margin-left 0.3s ease;
+            margin-left: -320px;
+            height: 100%;
+            overflow: hidden;
+        }
 
-    .logo h1 {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 600;
-      background: linear-gradient(45deg, #00d4ff, #0099ff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
+        .sidebar.open {
+            margin-left: 0;
+        }
 
-    /* Content Area */
-    .content {
-      flex: 1;
-      position: relative;
-      padding-top: 60px;
-      height: calc(100vh - 60px);
-    }
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-    #jaas-container {
-      width: 100%;
-      height: 100%;
-      border: none;
-      outline: none;
-      position: relative;
-    }
+        .sidebar-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+        }
 
-    /* Translation Sidebar */
-    .translation-sidebar {
-      position: fixed;
-      top: 0;
-      left: -400px;
-      width: 400px;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.95);
-      -webkit-backdrop-filter: blur(20px);
-      backdrop-filter: blur(20px);
-      border-right: 1px solid rgba(255, 255, 255, 0.1);
-      transition: left 0.3s ease;
-      z-index: 1001;
-      display: flex;
-      flex-direction: column;
-    }
+        .close-sidebar {
+            background: none;
+            border: none;
+            color: #aaa;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-    .translation-sidebar.open {
-      left: 0;
-    }
+        .close-sidebar:hover {
+            color: #fff;
+        }
 
-    .sidebar-header {
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
 
-    .sidebar-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #00d4ff;
-    }
+        .transcript-item {
+            background: #252525;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
 
-    .close-sidebar {
-      background: none;
-      border: none;
-      color: #fff;
-      font-size: 24px;
-      cursor: pointer;
-      opacity: 0.7;
-      transition: opacity 0.3s ease;
-    }
+        .transcript-speaker {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 4px;
+        }
 
-    .close-sidebar:hover {
-      opacity: 1;
-    }
+        .transcript-text {
+            font-size: 14px;
+            color: #ddd;
+            line-height: 1.4;
+        }
 
-    .sidebar-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-    }
+        .transcript-translation {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #333;
+            font-size: 13px;
+            color: #165ECC;
+        }
 
-    .language-selector {
-      margin-bottom: 20px;
-    }
+        .jaas-wrapper {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
 
-    .language-selector label {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 14px;
-      font-weight: 500;
-      opacity: 0.9;
-    }
+        #jaas-container {
+            flex: 1;
+            width: 100%;
+            min-height: 0;
+        }
 
-    .language-selector select {
-      width: 100%;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 8px;
-      color: #fff;
-      padding: 12px;
-      font-size: 14px;
-      cursor: pointer;
-    }
+        .bottom-navbar {
+            background: #1f1f1f;
+            border-top: 1px solid #333;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
 
-    .language-selector select option {
-      background: #1a1a1a;
-      color: #fff;
-    }
+        .nav-button {
+            background: #2a2a2a;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #aaa;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
 
-    .transcription-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
+        .nav-button:hover {
+            background: #3a3a3a;
+            color: #fff;
+        }
 
-    .transcription-item {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 8px;
-      padding: 12px;
-      border-left: 3px solid #4CAF50;
-    }
+        .nav-button.active {
+            background: #165ECC;
+            color: #fff;
+        }
 
-    .transcription-item.translated {
-      border-left-color: #2196F3;
-    }
+        .nav-button svg {
+            width: 20px;
+            height: 20px;
+        }
 
-    .item-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
+        .nav-button.translate-btn {
+            background: #165ECC;
+            color: #fff;
+        }
 
-    .speaker-name {
-      font-weight: 600;
-      font-size: 12px;
-      color: #4CAF50;
-    }
+        .nav-button.translate-btn:hover {
+            background: #1a6ed8;
+        }
 
-    .timestamp {
-      font-size: 11px;
-      opacity: 0.6;
-    }
+        .nav-button.translate-btn.active {
+            background: #0d5bb5;
+        }
 
-    .original-text {
-      margin-bottom: 8px;
-      font-size: 14px;
-      line-height: 1.4;
-    }
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
 
-    .translated-text {
-      font-size: 14px;
-      line-height: 1.4;
-      color: #00d4ff;
-      padding-top: 8px;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
+        .empty-state svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
 
-    .translating {
-      font-style: italic;
-      opacity: 0.6;
-    }
+        .language-dropdown-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: flex-start;
+            align-items: flex-start;
+            padding-top: 60px;
+            padding-left: 16px;
+            z-index: 200;
+        }
 
-    .error {
-      color: #f44336;
-      font-style: italic;
-    }
+        .language-dropdown-overlay.open {
+            display: flex;
+        }
 
-    /* Overlay */
-    .overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s ease;
-      z-index: 999;
-    }
+        .language-dropdown {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 12px;
+            max-height: 70vh;
+            overflow-y: auto;
+            min-width: 280px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
 
-    .overlay.active {
-      opacity: 1;
-      visibility: visible;
-    }
+        .language-dropdown-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid #444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-    /* Status Indicator */
-    .status-indicator {
-      position: fixed;
-      top: 80px;
-      left: 20px;
-      background: rgba(0, 0, 0, 0.8);
-      padding: 8px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      z-index: 1002;
-    }
+        .language-dropdown-header span {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+        }
 
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #4CAF50;
-      animation: pulse 2s infinite;
-    }
+        .close-dropdown {
+            background: none;
+            border: none;
+            color: #aaa;
+            cursor: pointer;
+            padding: 4px;
+        }
 
-    @keyframes pulse {
+        .close-dropdown:hover {
+            color: #fff;
+        }
 
-      0%,
-      100% {
-        opacity: 1;
-      }
+        .language-option {
+            padding: 12px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #ddd;
+            transition: background 0.15s ease;
+        }
 
-      50% {
-        opacity: 0.5;
-      }
-    }
+        .language-option:hover {
+            background: #3a3a3a;
+        }
 
-    .status-dot.inactive {
-      background: #666;
-      animation: none;
-    }
+        .language-option.selected {
+            background: #165ECC;
+            color: #fff;
+        }
 
-    /* Floating Translation Button */
-    .floating-translation-btn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 56px;
-      height: 56px;
-      background: rgba(0, 212, 255, 0.9);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      z-index: 1001;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    }
+        .language-search {
+            padding: 12px 16px;
+            border-bottom: 1px solid #444;
+        }
 
-    .floating-translation-btn:hover {
-      background: rgba(0, 212, 255, 1);
-      transform: scale(1.1);
-    }
+        .language-search input {
+            width: 100%;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #fff;
+            font-size: 14px;
+        }
 
-    .floating-translation-btn svg {
-      width: 24px;
-      height: 24px;
-      fill: white;
-    }
-  </style>
+        .language-search input:focus {
+            outline: none;
+            border-color: #165ECC;
+        }
+
+        .language-search input::placeholder {
+            color: #666;
+        }
+    </style>
 </head>
 
 <body>
-  <div class="main-container">
-    <!-- Header -->
-    <div class="header">
-      <div class="logo">
-        <img src="/logo-white.png" alt="Orbit Conference Logo"
-          onerror="this.style.display='none'; console.log('Logo failed to load')">
-        <h1>Orbit Conference</h1>
-      </div>
-    </div>
+    <div class="app-container">
+        <div class="main-content">
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <h2>Transcription</h2>
+                    <button class="close-sidebar" onclick="toggleSidebar()" aria-label="Close sidebar">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="sidebar-content" id="transcript-list">
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M15.5852 12.75L17.327 16.2909C17.5098 16.6626 17.9593 16.8157 18.331 16.6329C18.7027 16.4501 18.8558 16.0006 18.673 15.6289L12.6414 3.36696C12.2255 2.52157 11.017 2.53122 10.6146 3.38315L4.5718 16.1797C4.39494 16.5542 4.55519 16.9012 4.92974 17.0781C5.3043 17.255 5.65131 17.0947 5.82818 16.7202L7.85021 12.75H15.5852ZM14.8474 11.25L11.6388 4.72714L8.55854 11.25H14.8474Z"/>
+                            <path d="M3 20.25C3 19.8358 3.33579 19.5 3.75 19.5H20.25C20.6642 19.5 21 19.8358 21 20.25C21 20.6642 20.6642 21 20.25 21H3.75C3.33579 21 3 20.6642 3 20.25Z"/>
+                        </svg>
+                        <p>Click Translate to activate transcription</p>
+                    </div>
+                </div>
+            </aside>
 
-    <!-- Content Area with Jitsi -->
-    <div class="content">
-      <div id="jaas-container"></div>
-    </div>
+            <div class="jaas-wrapper">
+                <div id="jaas-container"></div>
 
-    <!-- Translation Sidebar -->
-    <div class="translation-sidebar" id="translation-sidebar">
-      <div class="sidebar-header">
-        <div class="sidebar-title">Live Translation</div>
-        <button class="close-sidebar" id="close-sidebar">&times;</button>
-      </div>
-      <div class="sidebar-content">
-        <div class="language-selector">
-          <label for="target-language">Translate to:</label>
-          <select id="target-language" title="Select translation language" aria-label="Select translation language">
-            <option value="en">English</option>
-            <option value="nl">Dutch (Flemish)</option>
-            <option value="de">German</option>
-            <option value="fr">French</option>
-            <option value="es">Spanish</option>
-            <option value="it">Italian</option>
-            <option value="pt">Portuguese</option>
-            <option value="ja">Japanese</option>
-            <option value="zh">Chinese</option>
-            <option value="ko">Korean</option>
-            <option value="hi">Hindi</option>
-            <option value="ru">Russian</option>
-            <option value="ar">Arabic</option>
-            <option value="tr">Turkish</option>
-            <option value="pl">Polish</option>
-            <option value="sv">Swedish</option>
-            <option value="tl">Filipino (Tagalog)</option>
-            <option value="bg">Bulgarian</option>
-            <option value="ro">Romanian</option>
-            <option value="cs">Czech</option>
-            <option value="el">Greek</option>
-            <option value="fi">Finnish</option>
-            <option value="hr">Croatian</option>
-            <option value="ms">Malay</option>
-            <option value="sk">Slovak</option>
-            <option value="da">Danish</option>
-            <option value="ta">Tamil</option>
-            <option value="uk">Ukrainian</option>
-            <option value="hu">Hungarian</option>
-            <option value="no">Norwegian</option>
-            <option value="vi">Vietnamese</option>
-            <option value="bn">Bengali</option>
-            <option value="th">Thai</option>
-            <option value="he">Hebrew</option>
-            <option value="ka">Georgian</option>
-            <option value="id">Indonesian</option>
-            <option value="te">Telugu</option>
-            <option value="gu">Gujarati</option>
-            <option value="kn">Kannada</option>
-            <option value="ml">Malayalam</option>
-            <option value="mr">Marathi</option>
-            <option value="pa">Punjabi</option>
-          </select>
+                <div class="bottom-navbar">
+                    <button class="nav-button" title="Microphone">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5z"/>
+                            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                        </svg>
+                    </button>
+                    <button class="nav-button" title="Camera">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+                        </svg>
+                    </button>
+                    <button class="nav-button" title="Chat">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+                        </svg>
+                    </button>
+                    <button class="nav-button translate-btn" id="translate-btn" onclick="toggleTranslation()" title="Translation">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M15.5852 12.75L17.327 16.2909C17.5098 16.6626 17.9593 16.8157 18.331 16.6329C18.7027 16.4501 18.8558 16.0006 18.673 15.6289L12.6414 3.36696C12.2255 2.52157 11.017 2.53122 10.6146 3.38315L4.5718 16.1797C4.39494 16.5542 4.55519 16.9012 4.92974 17.0781C5.3043 17.255 5.65131 17.0947 5.82818 16.7202L7.85021 12.75H15.5852ZM14.8474 11.25L11.6388 4.72714L8.55854 11.25H14.8474Z"/>
+                            <path d="M3 20.25C3 19.8358 3.33579 19.5 3.75 19.5H20.25C20.6642 19.5 21 19.8358 21 20.25C21 20.6642 20.6642 21 20.25 21H3.75C3.33579 21 3 20.6642 3 20.25Z"/>
+                        </svg>
+                        <span>Translate</span>
+                    </button>
+                    <button class="nav-button" title="Settings">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
         </div>
-        <div class="transcription-list" id="transcription-list">
-          <!-- Transcription items will be added here dynamically -->
+    </div>
+
+    <div class="language-dropdown-overlay" id="language-overlay" onclick="closeLanguageDropdown(event)">
+        <div class="language-dropdown" onclick="event.stopPropagation()">
+            <div class="language-dropdown-header">
+                <span>Select Language</span>
+                <button class="close-dropdown" onclick="closeLanguageDropdown()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="language-search">
+                <input type="text" id="language-search" placeholder="Search languages..." oninput="filterLanguages()">
+            </div>
+            <div id="language-list">
+                <div class="language-option selected" data-value="en" onclick="selectLanguage('en')">English</div>
+                <div class="language-option" data-value="af" onclick="selectLanguage('af')">Afrikaans</div>
+                <div class="language-option" data-value="sq" onclick="selectLanguage('sq')">Albanian</div>
+                <div class="language-option" data-value="am" onclick="selectLanguage('am')">Amharic</div>
+                <div class="language-option" data-value="ar" onclick="selectLanguage('ar')">Arabic</div>
+                <div class="language-option" data-value="hy" onclick="selectLanguage('hy')">Armenian</div>
+                <div class="language-option" data-value="az" onclick="selectLanguage('az')">Azerbaijani</div>
+                <div class="language-option" data-value="eu" onclick="selectLanguage('eu')">Basque</div>
+                <div class="language-option" data-value="be" onclick="selectLanguage('be')">Belarusian</div>
+                <div class="language-option" data-value="bn" onclick="selectLanguage('bn')">Bengali</div>
+                <div class="language-option" data-value="bs" onclick="selectLanguage('bs')">Bosnian</div>
+                <div class="language-option" data-value="bg" onclick="selectLanguage('bg')">Bulgarian</div>
+                <div class="language-option" data-value="ca" onclick="selectLanguage('ca')">Catalan</div>
+                <div class="language-option" data-value="ceb" onclick="selectLanguage('ceb')">Cebuano</div>
+                <div class="language-option" data-value="zh" onclick="selectLanguage('zh')">Chinese (Simplified)</div>
+                <div class="language-option" data-value="zh-TW" onclick="selectLanguage('zh-TW')">Chinese (Traditional)</div>
+                <div class="language-option" data-value="co" onclick="selectLanguage('co')">Corsican</div>
+                <div class="language-option" data-value="hr" onclick="selectLanguage('hr')">Croatian</div>
+                <div class="language-option" data-value="cs" onclick="selectLanguage('cs')">Czech</div>
+                <div class="language-option" data-value="da" onclick="selectLanguage('da')">Danish</div>
+                <div class="language-option" data-value="nl" onclick="selectLanguage('nl')">Dutch</div>
+                <div class="language-option" data-value="eo" onclick="selectLanguage('eo')">Esperanto</div>
+                <div class="language-option" data-value="et" onclick="selectLanguage('et')">Estonian</div>
+                <div class="language-option" data-value="fi" onclick="selectLanguage('fi')">Finnish</div>
+                <div class="language-option" data-value="fr" onclick="selectLanguage('fr')">French</div>
+                <div class="language-option" data-value="fy" onclick="selectLanguage('fy')">Frisian</div>
+                <div class="language-option" data-value="gl" onclick="selectLanguage('gl')">Galician</div>
+                <div class="language-option" data-value="ka" onclick="selectLanguage('ka')">Georgian</div>
+                <div class="language-option" data-value="de" onclick="selectLanguage('de')">German</div>
+                <div class="language-option" data-value="el" onclick="selectLanguage('el')">Greek</div>
+                <div class="language-option" data-value="gu" onclick="selectLanguage('gu')">Gujarati</div>
+                <div class="language-option" data-value="ht" onclick="selectLanguage('ht')">Haitian Creole</div>
+                <div class="language-option" data-value="ha" onclick="selectLanguage('ha')">Hausa</div>
+                <div class="language-option" data-value="haw" onclick="selectLanguage('haw')">Hawaiian</div>
+                <div class="language-option" data-value="he" onclick="selectLanguage('he')">Hebrew</div>
+                <div class="language-option" data-value="hi" onclick="selectLanguage('hi')">Hindi</div>
+                <div class="language-option" data-value="hmn" onclick="selectLanguage('hmn')">Hmong</div>
+                <div class="language-option" data-value="hu" onclick="selectLanguage('hu')">Hungarian</div>
+                <div class="language-option" data-value="is" onclick="selectLanguage('is')">Icelandic</div>
+                <div class="language-option" data-value="ig" onclick="selectLanguage('ig')">Igbo</div>
+                <div class="language-option" data-value="id" onclick="selectLanguage('id')">Indonesian</div>
+                <div class="language-option" data-value="ga" onclick="selectLanguage('ga')">Irish</div>
+                <div class="language-option" data-value="it" onclick="selectLanguage('it')">Italian</div>
+                <div class="language-option" data-value="ja" onclick="selectLanguage('ja')">Japanese</div>
+                <div class="language-option" data-value="jv" onclick="selectLanguage('jv')">Javanese</div>
+                <div class="language-option" data-value="kn" onclick="selectLanguage('kn')">Kannada</div>
+                <div class="language-option" data-value="kk" onclick="selectLanguage('kk')">Kazakh</div>
+                <div class="language-option" data-value="km" onclick="selectLanguage('km')">Khmer</div>
+                <div class="language-option" data-value="rw" onclick="selectLanguage('rw')">Kinyarwanda</div>
+                <div class="language-option" data-value="ko" onclick="selectLanguage('ko')">Korean</div>
+                <div class="language-option" data-value="ku" onclick="selectLanguage('ku')">Kurdish</div>
+                <div class="language-option" data-value="ky" onclick="selectLanguage('ky')">Kyrgyz</div>
+                <div class="language-option" data-value="lo" onclick="selectLanguage('lo')">Lao</div>
+                <div class="language-option" data-value="la" onclick="selectLanguage('la')">Latin</div>
+                <div class="language-option" data-value="lv" onclick="selectLanguage('lv')">Latvian</div>
+                <div class="language-option" data-value="lt" onclick="selectLanguage('lt')">Lithuanian</div>
+                <div class="language-option" data-value="lb" onclick="selectLanguage('lb')">Luxembourgish</div>
+                <div class="language-option" data-value="mk" onclick="selectLanguage('mk')">Macedonian</div>
+                <div class="language-option" data-value="mg" onclick="selectLanguage('mg')">Malagasy</div>
+                <div class="language-option" data-value="ms" onclick="selectLanguage('ms')">Malay</div>
+                <div class="language-option" data-value="ml" onclick="selectLanguage('ml')">Malayalam</div>
+                <div class="language-option" data-value="mt" onclick="selectLanguage('mt')">Maltese</div>
+                <div class="language-option" data-value="mi" onclick="selectLanguage('mi')">Maori</div>
+                <div class="language-option" data-value="mr" onclick="selectLanguage('mr')">Marathi</div>
+                <div class="language-option" data-value="mn" onclick="selectLanguage('mn')">Mongolian</div>
+                <div class="language-option" data-value="my" onclick="selectLanguage('my')">Myanmar (Burmese)</div>
+                <div class="language-option" data-value="ne" onclick="selectLanguage('ne')">Nepali</div>
+                <div class="language-option" data-value="no" onclick="selectLanguage('no')">Norwegian</div>
+                <div class="language-option" data-value="ny" onclick="selectLanguage('ny')">Nyanja (Chichewa)</div>
+                <div class="language-option" data-value="or" onclick="selectLanguage('or')">Odia (Oriya)</div>
+                <div class="language-option" data-value="ps" onclick="selectLanguage('ps')">Pashto</div>
+                <div class="language-option" data-value="fa" onclick="selectLanguage('fa')">Persian</div>
+                <div class="language-option" data-value="pl" onclick="selectLanguage('pl')">Polish</div>
+                <div class="language-option" data-value="pt" onclick="selectLanguage('pt')">Portuguese</div>
+                <div class="language-option" data-value="pa" onclick="selectLanguage('pa')">Punjabi</div>
+                <div class="language-option" data-value="ro" onclick="selectLanguage('ro')">Romanian</div>
+                <div class="language-option" data-value="ru" onclick="selectLanguage('ru')">Russian</div>
+                <div class="language-option" data-value="sm" onclick="selectLanguage('sm')">Samoan</div>
+                <div class="language-option" data-value="gd" onclick="selectLanguage('gd')">Scottish Gaelic</div>
+                <div class="language-option" data-value="sr" onclick="selectLanguage('sr')">Serbian</div>
+                <div class="language-option" data-value="st" onclick="selectLanguage('st')">Sesotho</div>
+                <div class="language-option" data-value="sn" onclick="selectLanguage('sn')">Shona</div>
+                <div class="language-option" data-value="sd" onclick="selectLanguage('sd')">Sindhi</div>
+                <div class="language-option" data-value="si" onclick="selectLanguage('si')">Sinhala</div>
+                <div class="language-option" data-value="sk" onclick="selectLanguage('sk')">Slovak</div>
+                <div class="language-option" data-value="sl" onclick="selectLanguage('sl')">Slovenian</div>
+                <div class="language-option" data-value="so" onclick="selectLanguage('so')">Somali</div>
+                <div class="language-option" data-value="es" onclick="selectLanguage('es')">Spanish</div>
+                <div class="language-option" data-value="su" onclick="selectLanguage('su')">Sundanese</div>
+                <div class="language-option" data-value="sw" onclick="selectLanguage('sw')">Swahili</div>
+                <div class="language-option" data-value="sv" onclick="selectLanguage('sv')">Swedish</div>
+                <div class="language-option" data-value="tg" onclick="selectLanguage('tg')">Tajik</div>
+                <div class="language-option" data-value="ta" onclick="selectLanguage('ta')">Tamil</div>
+                <div class="language-option" data-value="te" onclick="selectLanguage('te')">Telugu</div>
+                <div class="language-option" data-value="th" onclick="selectLanguage('th')">Thai</div>
+                <div class="language-option" data-value="tr" onclick="selectLanguage('tr')">Turkish</div>
+                <div class="language-option" data-value="uk" onclick="selectLanguage('uk')">Ukrainian</div>
+                <div class="language-option" data-value="ur" onclick="selectLanguage('ur')">Urdu</div>
+                <div class="language-option" data-value="uz" onclick="selectLanguage('uz')">Uzbek</div>
+                <div class="language-option" data-value="vi" onclick="selectLanguage('vi')">Vietnamese</div>
+                <div class="language-option" data-value="cy" onclick="selectLanguage('cy')">Welsh</div>
+                <div class="language-option" data-value="xh" onclick="selectLanguage('xh')">Xhosa</div>
+                <div class="language-option" data-value="yi" onclick="selectLanguage('yi')">Yiddish</div>
+                <div class="language-option" data-value="yo" onclick="selectLanguage('yo')">Yoruba</div>
+                <div class="language-option" data-value="zu" onclick="selectLanguage('zu')">Zulu</div>
+            </div>
         </div>
-      </div>
     </div>
 
-    <!-- Overlay -->
-    <div class="overlay" id="overlay"></div>
+    <script type="text/javascript">
+        let api;
+        let sidebarOpen = false;
+        let translationActive = false;
+        let selectedLanguage = 'en';
 
-    <!-- Floating Translation Button -->
-    <div class="floating-translation-btn" id="translation-btn" title="Open Translation">
-      <svg viewBox="0 0 24 24">
-        <path
-          d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zM15.62 17l1.62-4.33L19.12 17h-3.24z" />
-      </svg>
-    </div>
-
-    <!-- Status Indicator -->
-    <div class="status-indicator" id="status-indicator">
-      <div class="status-dot inactive" id="status-dot"></div>
-      <span id="status-text">Disconnected</span>
-    </div>
-  </div>
-
-  <script>
-    // Translation state
-    let translationEnabled = false;
-    let currentAudio = null;
-    let transcriptionItems = new Map(); // Store transcription items by ID
-    let jitsiApi = null;
-
-    // DOM elements
-    const translationSidebar = document.getElementById('translation-sidebar');
-    const overlay = document.getElementById('overlay');
-    const closeSidebar = document.getElementById('close-sidebar');
-    const transcriptionList = document.getElementById('transcription-list');
-    const languageSelect = document.getElementById('target-language');
-    const statusDot = document.getElementById('status-dot');
-    const statusText = document.getElementById('status-text');
-
-    // Initialize Jitsi - simplified approach
-    function initJitsi() {
-      console.log('Initializing Jitsi...');
-
-      jitsiApi = new JitsiMeetExternalAPI("8x8.vc", {
-        roomName: "vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3/conference",
-        parentNode: document.querySelector('#jaas-container'),
-        width: '100%',
-        height: '100%'
-      });
-
-      console.log('Jitsi loaded successfully');
-
-      // Listen for events
-      jitsiApi.addEventListener('videoConferenceJoined', () => {
-        console.log('Joined conference');
-        updateStatus('In meeting - Translation ready', true);
-      });
-
-      jitsiApi.addEventListener('videoConferenceLeft', () => {
-        console.log('Left conference');
-        updateStatus('Ready - Connect to a meeting to start transcription', false);
-      });
-
-      // Capture transcription events from Jitsi
-      jitsiApi.addEventListener('transcriptionChunkReceived', (event) => {
-        console.log('Transcription chunk received:', event);
-
-        // Only process if translation is enabled
-        if (!translationEnabled || !event.data || !event.data.text) return;
-
-        const text = event.data.text.trim();
-        if (!text) return;
-
-        const speaker = event.data.participantName || 'Unknown';
-        const timestamp = new Date().toISOString();
-        const sessionId = event.data.participantId || `jitsi_${Date.now()}`;
-
-        // Create transcription item
-        const item = {
-          id: sessionId,
-          speaker: speaker,
-          timestamp: timestamp,
-          originalText: text,
-          translatedText: null,
-          translating: false,
-          element: null
-        };
-
-        // Add to DOM
-        addTranscriptionItem(item);
-        transcriptionItems.set(sessionId, item);
-
-        // Start translation
-        translateAndSpeak(item);
-      });
-    }
-
-    // Floating translation button handler
-    document.getElementById('translation-btn').addEventListener('click', function () {
-      toggleTranslationSidebar();
-    });
-
-    // Sidebar controls
-    function toggleTranslationSidebar() {
-      if (translationSidebar.classList.contains('open')) {
-        closeTranslationSidebar();
-      } else {
-        openTranslationSidebar();
-      }
-    }
-
-    function openTranslationSidebar() {
-      translationSidebar.classList.add('open');
-      overlay.classList.add('active');
-      translationNav.classList.add('active');
-
-      // Enable translation when sidebar opens
-      if (!translationEnabled) {
-        translationEnabled = true;
-        updateStatus('Translation enabled - Listening for transcriptions...', true);
-      }
-    }
-
-    function closeTranslationSidebar() {
-      translationSidebar.classList.remove('open');
-      overlay.classList.remove('active');
-      translationNav.classList.remove('active');
-    }
-
-    // Close sidebar when clicking overlay
-    overlay.addEventListener('click', closeTranslationSidebar);
-    closeSidebar.addEventListener('click', closeTranslationSidebar);
-
-    // Status indicator
-    function updateStatus(text, active = false) {
-      statusText.textContent = text;
-      if (active) {
-        statusDot.classList.remove('inactive');
-      } else {
-        statusDot.classList.add('inactive');
-      }
-    }
-
-    // WebSocket connection for real-time transcription (fallback)
-    let ws = null;
-
-    function connectWebSocket() {
-      try {
-        ws = new WebSocket('wss://orbit-zoom.vercel.app');
-
-        ws.onopen = function () {
-          console.log('Connected to transcription WebSocket');
-        };
-
-        ws.onmessage = function (event) {
-          try {
-            const data = JSON.parse(event.data);
-            if (data.type === 'transcription_chunk') {
-              handleTranscriptionChunk(data);
-            }
-          } catch (error) {
-            console.error('Error parsing WebSocket message:', error);
-          }
-        };
-
-        ws.onclose = function () {
-          setTimeout(connectWebSocket, 3000);
-        };
-
-        ws.onerror = function (error) {
-          console.error('WebSocket error:', error);
-        };
-      } catch (error) {
-        console.error('Failed to connect WebSocket:', error);
-      }
-    }
-
-    // Handle transcription chunks (from WebSocket)
-    function handleTranscriptionChunk(data) {
-      if (!translationEnabled) return;
-
-      const { text, speaker, timestamp, sessionId } = data;
-
-      if (!text || !text.trim()) return;
-
-      let item = transcriptionItems.get(sessionId);
-
-      if (!item) {
-        item = {
-          id: sessionId,
-          speaker: speaker || 'Unknown',
-          timestamp: timestamp || new Date().toISOString(),
-          originalText: text,
-          translatedText: null,
-          translating: false,
-          element: null
-        };
-
-        addTranscriptionItem(item);
-        transcriptionItems.set(sessionId, item);
-        translateAndSpeak(item);
-      } else {
-        item.originalText = text;
-        updateTranscriptionItem(item);
-
-        if (!item.translating) {
-          translateAndSpeak(item);
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebarOpen = !sidebarOpen;
+            sidebar.classList.toggle('open', sidebarOpen);
+            document.getElementById('translate-btn').classList.toggle('active', sidebarOpen);
         }
-      }
-    }
 
-    // Add transcription item to DOM
-    function addTranscriptionItem(item) {
-      const itemElement = document.createElement('div');
-      itemElement.className = 'transcription-item';
-      itemElement.id = `transcription-${item.id}`;
-
-      const time = new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-      itemElement.innerHTML = `
-        <div class="item-header">
-          <span class="speaker-name">${item.speaker}</span>
-          <span class="timestamp">${time}</span>
-        </div>
-        <div class="original-text">${item.originalText}</div>
-        <div class="translated-text translating">Translating...</div>
-      `;
-
-      transcriptionList.insertBefore(itemElement, transcriptionList.firstChild);
-      item.element = itemElement;
-
-      while (transcriptionList.children.length > 50) {
-        const lastChild = transcriptionList.lastChild;
-        const lastId = lastChild.id.replace('transcription-', '');
-        transcriptionItems.delete(lastId);
-        lastChild.remove();
-      }
-    }
-
-    // Update transcription item in DOM
-    function updateTranscriptionItem(item) {
-      if (!item.element) return;
-
-      const originalTextElement = item.element.querySelector('.original-text');
-      if (originalTextElement) {
-        originalTextElement.textContent = item.originalText;
-      }
-    }
-
-    // Translate and speak text
-    async function translateAndSpeak(item) {
-      if (item.translating) return;
-
-      item.translating = true;
-      const targetLang = languageSelect.value;
-
-      try {
-        const response = await fetch('/api/tts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            text: item.originalText,
-            speaker: item.speaker,
-            sourceLang: 'auto',
-            targetLang: targetLang
-          })
-        });
-
-        if (!response.ok) throw new Error('Translation request failed');
-
-        const data = await response.json();
-
-        if (data.translatedText) {
-          item.translatedText = data.translatedText;
-
-          if (item.element) {
-            const translatedTextElement = item.element.querySelector('.translated-text');
-            if (translatedTextElement) {
-              translatedTextElement.textContent = data.translatedText;
-              translatedTextElement.classList.remove('translating');
-              item.element.classList.add('translated');
+        function toggleTranslation() {
+            if (!translationActive) {
+                translationActive = true;
+                openLanguageDropdown();
+            } else {
+                toggleSidebar();
             }
-          }
+        }
 
-          if (data.audioUrl) {
-            if (currentAudio) {
-              currentAudio.pause();
-              currentAudio = null;
+        function openLanguageDropdown() {
+            document.getElementById('language-overlay').classList.add('open');
+            document.getElementById('language-search').focus();
+        }
+
+        function closeLanguageDropdown(event) {
+            if (event && event.target !== document.getElementById('language-overlay')) {
+                return;
             }
-
-            currentAudio = new Audio(data.audioUrl);
-            currentAudio.play().catch(err => console.error('Audio play error:', err));
-          }
-        } else {
-          throw new Error(data.error || 'Translation failed');
+            document.getElementById('language-overlay').classList.remove('open');
         }
-      } catch (error) {
-        console.error('Translation error:', error);
 
-        if (item.element) {
-          const translatedTextElement = item.element.querySelector('.translated-text');
-          if (translatedTextElement) {
-            translatedTextElement.textContent = `Translation failed: ${error.message}`;
-            translatedTextElement.classList.add('error');
-            translatedTextElement.classList.remove('translating');
-          }
+        function selectLanguage(lang) {
+            selectedLanguage = lang;
+            localStorage.setItem('targetLanguage', lang);
+            
+            document.querySelectorAll('.language-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            document.querySelector(`.language-option[data-value="${lang}"]`).classList.add('selected');
+            
+            document.getElementById('language-overlay').classList.remove('open');
+            toggleSidebar();
         }
-      } finally {
-        item.translating = false;
-      }
-    }
 
-    // Initialize
-    window.onload = () => {
-      console.log('Orbit Conference initialized');
+        function filterLanguages() {
+            const search = document.getElementById('language-search').value.toLowerCase();
+            document.querySelectorAll('.language-option').forEach(opt => {
+                const text = opt.textContent.toLowerCase();
+                opt.style.display = text.includes(search) ? 'block' : 'none';
+            });
+        }
 
-      // Initialize Jitsi
-      initJitsi();
-
-      // Connect to WebSocket as fallback
-      connectWebSocket();
-
-      // Update status
-      updateStatus('Initializing meeting...', false);
-    };
-
-    // Handle language change
-    languageSelect.addEventListener('change', function () {
-      console.log('Language changed to:', this.value);
-    });
-  </script>
+        window.onload = () => {
+            api = new JitsiMeetExternalAPI("8x8.vc", {
+                roomName: "vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3/SampleAppNativeChemicalsPowerWhen",
+                parentNode: document.querySelector('#jaas-container')
+            });
+            
+            const savedLang = localStorage.getItem('targetLanguage');
+            if (savedLang) {
+                selectedLanguage = savedLang;
+                document.querySelectorAll('.language-option').forEach(opt => {
+                    if (opt.dataset.value === savedLang) {
+                        opt.classList.add('selected');
+                    }
+                });
+            }
+        };
+    </script>
 </body>
 
 </html>

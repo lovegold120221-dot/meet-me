@@ -1,92 +1,86 @@
 const crypto = require('crypto');
 
-const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'whsec_238a704aaf54476c844e9e662f715ba1';
+const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'whsec_bb49fdafa1c4408c8dfdf09b3a3bbbda';
 
-// Webhook signature verification (8x8 JaaS format)
-function verifyWebhookSignature(rawBody, signatureHeader) {
-  if (!signatureHeader) return false;
-  
-  const elements = signatureHeader.split(',');
-  let timestamp = null;
-  let signature = null;
-  
-  for (const element of elements) {
-    const [prefix, value] = element.split('=');
-    if (prefix === 't') timestamp = value;
-    else if (prefix === 'v1') signature = value;
-  }
-  
-  if (!timestamp || !signature) return false;
-  
-  const signedPayload = `${timestamp}.${rawBody}`;
-  
-  const expectedSignature = crypto
-    .createHmac('sha256', WEBHOOK_SECRET)
-    .update(signedPayload)
-    .digest('base64');
-  
-  try {
-    return crypto.timingSafeEqual(
-      Buffer.from(signature),
-      Buffer.from(expectedSignature)
-    );
-  } catch (e) {
-    return false;
-  }
+function verifySignature(req) {
+    const signature = req.headers['x-jaas-signature'];
+    if (!signature) {
+        return false;
+    }
+
+    const timestamp = signature.split(',').find(s => s.startsWith('t='))?.split('=')[1];
+    const sigV1 = signature.split(',').find(s => s.startsWith('v1='))?.split('=')[1];
+
+    if (!timestamp || !sigV1) {
+        return false;
+    }
+
+    const signedPayload = `${timestamp}.${JSON.stringify(req.body)}`;
+    const expectedSignature = crypto
+        .createHmac('sha256', WEBHOOK_SECRET)
+        .update(signedPayload, 'utf8')
+        .digest('base64');
+
+    return crypto.timingSafeEqual(Buffer.from(sigV1), Buffer.from(expectedSignature));
 }
 
-module.exports = (req, res) => {
-  // Enable CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-jaas-signature');
-  
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-  
-  const rawBody = JSON.stringify(req.body);
-  const signatureHeader = req.headers['x-jaas-signature'];
-  
-  // Verify signature
-  if (!verifyWebhookSignature(rawBody, signatureHeader)) {
-    console.log('⚠️ Invalid webhook signature');
-    return res.status(401).json({ error: 'Invalid signature' });
-  }
-  
-  const event = req.body;
-  const eventType = event.eventType || 'UNKNOWN';
-  
-  console.log(`📨 Webhook: ${eventType}`);
-  console.log('   Room:', event.fqn || 'N/A');
-  
-  // Handle events
-  switch (eventType) {
-    case 'PARTICIPANT_JOINED':
-      console.log(`   👤 Joined: ${event.data?.name || 'Anonymous'}`);
-      break;
-    case 'PARTICIPANT_LEFT':
-      console.log(`   👋 Left: ${event.data?.name || 'Anonymous'}`);
-      break;
-    case 'ROOM_CREATED':
-      console.log('   🏠 Room created');
-      break;
-    case 'ROOM_DESTROYED':
-      console.log('   🗑️ Room destroyed');
-      break;
-    case 'RECORDING_STARTED':
-      console.log('   🔴 Recording started');
-      break;
-    case 'RECORDING_ENDED':
-      console.log('   ⏹️ Recording ended');
-      break;
-    default:
-      console.log(`   ℹ️ Event: ${eventType}`);
-  }
-  
-  res.status(200).json({ received: true });
-};
+function handleTranscriptionChunk(data) {
+    console.log('Transcription chunk received:', data.final);
+    console.log('Speaker:', data.participant?.name);
+    console.log('Language:', data.language);
+}
+
+function handleParticipantJoined(data) {
+    console.log('Participant joined:', data.name, data.email);
+}
+
+function handleRoomCreated(data) {
+    console.log('Room created:', data.conference);
+}
+
+async function handler(req, res) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    if (!verifySignature(req)) {
+        console.log('Invalid signature');
+        return res.status(401).json({ error: 'Invalid signature' });
+    }
+
+    const { eventType, sessionId, timestamp, fqn, data } = req.body;
+
+    console.log(`Received event: ${eventType} for session: ${sessionId}`);
+
+    try {
+        switch (eventType) {
+            case 'TRANSCRIPTION_CHUNK_RECEIVED':
+                handleTranscriptionChunk(data);
+                break;
+            case 'TRANSCRIPTION_UPLOADED':
+                console.log('Full transcription available at:', data.preAuthenticatedLink);
+                break;
+            case 'PARTICIPANT_JOINED':
+                handleParticipantJoined(data);
+                break;
+            case 'ROOM_CREATED':
+                handleRoomCreated(data);
+                break;
+            case 'ROOM_DESTROYED':
+                console.log('Room destroyed');
+                break;
+            case 'PARTICIPANT_LEFT':
+                console.log('Participant left:', data.name);
+                break;
+            default:
+                console.log(`Unhandled event: ${eventType}`);
+        }
+
+        return res.status(200).json({ received: true });
+    } catch (error) {
+        console.error('Error processing webhook:', error);
+        return res.status(500).json({ error: 'Internal error' });
+    }
+}
+
+module.exports = handler;

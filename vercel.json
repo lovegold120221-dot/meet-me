@@ -1,44 +1,8 @@
 {
-  "version": 2,
-  "name": "meet-eburon-ai",
-  "builds": [
-    {
-      "src": "index.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "api/*.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "server.js",
-      "use": "@vercel/node"
-    }
-  ],
   "routes": [
     {
-      "src": "/api/token",
-      "dest": "/api/token.js"
-    },
-    {
-      "src": "/api/webhook",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/api/tts",
-      "dest": "/api/tts.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "src": "/webhook",
+      "dest": "/api/webhook.js"
     }
-  ],
-  "env": {
-    "JAAS_APP_ID": "vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3",
-    "JAAS_KID": "vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3/9e218f",
-    "WEBHOOK_SECRET": "whsec_bb49fdafa1c4408c8dfdf09b3a3bbbda",
-    "CARTESIA_API_KEY": "sk_car_DHqGNxeSy38nNnVFD8Dv3Q",
-    "CARTESIA_VOICE_ID": "eded3658-4f70-4420-b021-1e70e14a8203",
-    "CARTESIA_MODEL_ID": "sonic-3-latest"
-  }
+  ]
 }
