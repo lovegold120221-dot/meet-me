@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+  # Vosk Speech-to-Text Server
+  # Free, open-source, self-hosted speech recognition
+  vosk:
+    image: alphacep/kaldi-en:latest
+    container_name: jitsi-vosk
+    restart: unless-stopped
+    ports:
+      - "2700:2700"
+    networks:
+      - jitsi
+
+  # LibreTranslate - Free, Open Source Translation API
+  # Alternative to Google Translate
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    container_name: jitsi-libretranslate
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - LIBRETRANSLATE_LIMIT=100
+      - ARGOS_TRANSLATE_PACKAGES_DIR=/var/lib/argos-translate
+    volumes:
+      - libretranslate-data:/var/lib/argos-translate
+    networks:
+      - jitsi
+
+networks:
+  jitsi:
+    name: meet.jitsi
+    external: true
+
+volumes:
+  libretranslate-data:

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orbit Conference</title>
+    <!-- Jitsi External API -->
+    <script src='https://meet.yourdomain.com/external_api.js' async></script>
+    <style>
+        html, body, #jaas-container {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="jaas-container"></div>
+
+    <script type="text/javascript">
+        // Configuration for self-hosted Jitsi with transcription
+        const JITSI_DOMAIN = 'meet.yourdomain.com';  // CHANGE to your domain
+        const ROOM_NAME = 'OrbitConference';
+
+        window.onload = () => {
+            // Initialize Jitsi API with transcription enabled
+            const api = new JitsiMeetExternalAPI(JITSI_DOMAIN, {
+                roomName: ROOM_NAME,
+                parentNode: document.querySelector('#jaas-container'),
+                
+                // Width and height (use 100% for full screen)
+                width: '100%',
+                height: '100%',
+                
+                // Enable transcription - THIS IS KEY FOR TRANSLATION
+                transcription: {
+                    enabled: true,
+                    // Available translation languages
+                    translationLanguages: ['en', 'es', 'de', 'fr', 'it', 'pt', 'ru', 'zh', 'ja', 'ko', 'ar'],
+                    // Default language
+                    preferredLanguage: 'en',
+                    // Use app language for UI or translation
+                    useAppLanguage: false,
+                    // Auto-start transcription when recording
+                    autoTranscribeOnRecord: true
+                },
+                
+                // Disable some features for cleaner UI
+                prejoinPageEnabled: false,
+                disableDeepLinking: true,
+                
+                // Start muted options
+                startWithAudioMuted: true,
+                startWithVideoMuted: true,
+                
+                // Interface config overrides
+                interfaceConfigOverwrite: {
+                    SHOW_JITSI_WATERMARK: false,
+                    SHOW_WATERMARK_FOR_GUESTS: false,
+                    DEFAULT_BACKGROUND: '#1a1a1a',
+                    // Show transcription button in toolbar
+                    TOOLBAR_BUTTONS: [
+                        'microphone', 'camera', 'desktop', 'fullscreen',
+                        'floating', 'hangup', 'chat', 'settings', 'subtitles'
+                    ],
+                    // Enable subtitles toggle
+                    ENABLE_SUBTITLES: true
+                }
+            });
+
+            // Listen for transcription events (if needed)
+            api.addEventListener('transcriptionStatusChanged', (event) => {
+                console.log('Transcription status:', event.status);
+            });
+
+            // Listen for transcription chunk (captions)
+            api.addEventListener('transcriptionChunkReceived', (event) => {
+                console.log('Transcription chunk:', event.text);
+            });
+        };
+    </script>
+</body>
+
+</html>

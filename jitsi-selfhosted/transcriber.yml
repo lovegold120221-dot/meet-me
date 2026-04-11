@@ -1,0 +1,54 @@
+version: '3'
+
+services:
+  # Build custom Jigasi from user's fork
+  transcriber:
+    build:
+      context: https://github.com/lovegold120221-dot/jigasi.git
+      dockerfile: DebianDockerfile
+    image: jigasi:custom
+    container_name: jitsi-transcriber
+    restart: unless-stopped
+    volumes:
+      - ${CONFIG}/transcriber:/config:Z
+      - ${CONFIG}/transcripts:/tmp/transcripts:Z
+    environment:
+      - JITSI_IMAGE_VERSION=stable
+      - JIGASI_MODE=transcriber
+      - XMPP_AUTH_DOMAIN
+      - XMPP_GUEST_DOMAIN
+      - XMPP_MUC_DOMAIN
+      - XMPP_INTERNAL_MUC_DOMAIN
+      - XMPP_SERVER
+      - XMPP_PORT
+      - XMPP_HIDDEN_DOMAIN
+      - XMPP_RECORDER_DOMAIN
+      - XMPP_DOMAIN
+      - PUBLIC_URL
+      - JIGASI_XMPP_USER
+      - JIGASI_XMPP_PASSWORD
+      - JIGASI_BREWERY_MUC
+      - JIGASI_TRANSCRIBER_USER
+      - JIGASI_TRANSCRIBER_PASSWORD
+      - JIGASI_TRANSCRIBER_ENABLE_SAVING
+      - JIGASI_TRANSCRIBER_ENABLE_TRANSLATION
+      - JIGASI_TRANSCRIBER_CUSTOM_SERVICE
+      - JIGASI_TRANSCRIBER_VOSK_URL
+      - JIGASI_TRANSCRIBER_LIBRETRANSLATE_URL
+      - JIGASI_TRANSCRIBER_WHISPER_URL
+      - GC_PROJECT_ID
+      - GC_PRIVATE_KEY_ID
+      - GC_PRIVATE_KEY
+      - GC_CLIENT_EMAIL
+      - GC_CLIENT_ID
+      - GC_CLIENT_CERT_URL
+      - TZ
+    depends_on:
+      - prosody
+    networks:
+      - jitsi
+
+networks:
+  jitsi:
+    name: meet.jitsi
+    external: true
