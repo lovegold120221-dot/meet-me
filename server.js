@@ -71,7 +71,7 @@ async function generateTTS(text) {
     model_id: CARTESIA_MODEL_ID,
     transcript: text,
     voice: { mode: 'id', id: CARTESIA_VOICE_ID },
-    output_format: { container: 'mp3', encoding: 'mp3', sample_rate: 24000 }
+    output_format: { container: 'mp3', sample_rate: 24000, bit_rate: 128000 }
   };
   
   console.log('   Request payload:', JSON.stringify(requestPayload, null, 2));

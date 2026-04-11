@@ -29,8 +29,8 @@ async function generateTTS(text) {
       },
       output_format: {
         container: 'mp3',
-        encoding: 'mp3',
-        sample_rate: 24000
+        sample_rate: 24000,
+        bit_rate: 128000
       }
     }, {
       headers: {
