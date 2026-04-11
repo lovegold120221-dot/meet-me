@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Orbit Conference</title>
+  <script src='https://8x8.vc/vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3/external_api.js'></script>
   <style>
     body {
       margin: 0;
@@ -66,10 +68,17 @@
     /* Content Area */
     .content {
       flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 80px 20px 80px;
+      position: relative;
+      padding-top: 60px;
+      padding-bottom: 70px;
+    }
+
+    #jaas-container {
+      width: 100%;
+      height: 100%;
+      border: none;
+      outline: none;
+      position: relative;
     }
 
     .welcome-message {
@@ -338,8 +347,15 @@
     }
 
     @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.5;
+      }
     }
 
     .status-dot.inactive {
@@ -348,6 +364,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="main-container">
     <!-- Header -->
@@ -359,38 +376,37 @@
       </div>
     </div>
 
-    <!-- Content Area -->
+    <!-- Content Area with Jitsi -->
     <div class="content">
-      <div class="welcome-message">
-        <h2>Welcome to Orbit Conference</h2>
-        <p>Your advanced meeting platform with real-time transcription and translation capabilities.</p>
-        <p>Join a meeting to get started, or tap the translation icon to view live transcriptions.</p>
-      </div>
+      <div id="jaas-container"></div>
     </div>
 
     <!-- Bottom Navigation -->
     <div class="bottom-nav">
       <div class="nav-item" id="home-nav">
         <svg viewBox="0 0 24 24">
-          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
         </svg>
         <span>Home</span>
       </div>
       <div class="nav-item" id="meeting-nav">
         <svg viewBox="0 0 24 24">
-          <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+          <path
+            d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" />
         </svg>
         <span>Meeting</span>
       </div>
       <div class="nav-item" id="translation-nav">
         <svg viewBox="0 0 24 24">
-          <path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+          <path
+            d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z" />
         </svg>
         <span>Translation</span>
       </div>
       <div class="nav-item" id="settings-nav">
         <svg viewBox="0 0 24 24">
-          <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+          <path
+            d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" />
         </svg>
         <span>Settings</span>
       </div>
@@ -471,6 +487,7 @@
     let translationEnabled = false;
     let currentAudio = null;
     let transcriptionItems = new Map(); // Store transcription items by ID
+    let jitsiApi = null;
 
     // DOM elements
     const translationSidebar = document.getElementById('translation-sidebar');
@@ -482,22 +499,114 @@
     const statusDot = document.getElementById('status-dot');
     const statusText = document.getElementById('status-text');
 
+    // Initialize Jitsi
+    async function initJitsi() {
+      console.log('Initializing Orbit Conference...');
+
+      // Wait for Jitsi API to be available
+      if (typeof JitsiMeetExternalAPI === 'undefined') {
+        console.log('Waiting for Jitsi API...');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        if (typeof JitsiMeetExternalAPI === 'undefined') {
+          console.error('Jitsi API not loaded');
+          return;
+        }
+      }
+
+      const roomName = 'conference';
+      const userName = 'Orbit User';
+      const isModerator = true;
+      const jaasDomain = '8x8.vc';
+
+      try {
+        console.log('Fetching JWT token...');
+        const apiUrl = window.location.hostname.includes('localhost')
+          ? `/api/token?room=${roomName}&name=${encodeURIComponent(userName)}&moderator=${isModerator}`
+          : `${window.location.origin}/api/token?room=${roomName}&name=${encodeURIComponent(userName)}&moderator=${isModerator}`;
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        console.log('Loading Jitsi...');
+        jitsiApi = new JitsiMeetExternalAPI(jaasDomain, {
+          roomName: `vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3/${roomName}`,
+          jwt: data.token,
+          parentNode: document.querySelector('#jaas-container'),
+          width: '100%',
+          height: '100%'
+        });
+
+        console.log('Jitsi loaded successfully');
+
+        // Listen for events
+        jitsiApi.addEventListener('videoConferenceJoined', () => {
+          console.log('Joined conference');
+          updateStatus('In meeting - Translation ready', true);
+        });
+
+        jitsiApi.addEventListener('videoConferenceLeft', () => {
+          console.log('Left conference');
+          updateStatus('Ready - Connect to a meeting to start transcription', false);
+        });
+
+        // Capture transcription events from Jitsi
+        jitsiApi.addEventListener('transcriptionChunkReceived', (event) => {
+          console.log('Transcription chunk received:', event);
+
+          // Only process if translation is enabled
+          if (!translationEnabled || !event.data || !event.data.text) return;
+
+          const text = event.data.text.trim();
+          if (!text) return;
+
+          const speaker = event.data.participantName || 'Unknown';
+          const timestamp = new Date().toISOString();
+          const sessionId = event.data.participantId || `jitsi_${Date.now()}`;
+
+          // Create transcription item
+          const item = {
+            id: sessionId,
+            speaker: speaker,
+            timestamp: timestamp,
+            originalText: text,
+            translatedText: null,
+            translating: false,
+            element: null
+          };
+
+          // Add to DOM
+          addTranscriptionItem(item);
+          transcriptionItems.set(sessionId, item);
+
+          // Start translation
+          translateAndSpeak(item);
+        });
+
+      } catch (error) {
+        console.error('Failed to initialize meeting:', error);
+      }
+    }
+
     // Navigation handling
     document.querySelectorAll('.nav-item').forEach(item => {
-      item.addEventListener('click', function() {
+      item.addEventListener('click', function () {
         // Remove active class from all items
         document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-        
+
         // Add active class to clicked item
         this.classList.add('active');
-        
+
         // Handle specific navigation
         if (this.id === 'translation-nav') {
           toggleTranslationSidebar();
         } else if (this.id === 'home-nav') {
           closeTranslationSidebar();
         } else if (this.id === 'meeting-nav') {
-          window.location.href = 'https://meet.eburon.ai';
+          if (jitsiApi) {
+            // Jitsi is already embedded, just show it
+            document.getElementById('jaas-container').style.display = 'block';
+          } else {
+            initJitsi();
+          }
         } else if (this.id === 'settings-nav') {
           alert('Settings coming soon!');
         }
@@ -517,11 +626,11 @@
       translationSidebar.classList.add('open');
       overlay.classList.add('active');
       translationNav.classList.add('active');
-      
+
       // Enable translation when sidebar opens
       if (!translationEnabled) {
         translationEnabled = true;
-        updateStatus('Listening for transcriptions...', true);
+        updateStatus('Translation enabled - Listening for transcriptions...', true);
       }
     }
 
@@ -529,8 +638,6 @@
       translationSidebar.classList.remove('open');
       overlay.classList.remove('active');
       translationNav.classList.remove('active');
-      
-      // Keep translation enabled even when sidebar is closed
     }
 
     // Close sidebar when clicking overlay
@@ -547,20 +654,18 @@
       }
     }
 
-    // WebSocket connection for real-time transcription
+    // WebSocket connection for real-time transcription (fallback)
     let ws = null;
-    
+
     function connectWebSocket() {
       try {
-        // Connect to WebSocket for real-time transcription updates
-        ws = new WebSocket('wss://meet.eburon.ai/ws');
-        
-        ws.onopen = function() {
+        ws = new WebSocket('wss://orbit-zoom.vercel.app');
+
+        ws.onopen = function () {
           console.log('Connected to transcription WebSocket');
-          updateStatus('Connected to transcription service', true);
         };
-        
-        ws.onmessage = function(event) {
+
+        ws.onmessage = function (event) {
           try {
             const data = JSON.parse(event.data);
             if (data.type === 'transcription_chunk') {
@@ -570,37 +675,30 @@
             console.error('Error parsing WebSocket message:', error);
           }
         };
-        
-        ws.onclose = function() {
-          console.log('WebSocket connection closed');
-          updateStatus('Connection lost. Reconnecting...', false);
-          // Try to reconnect after 3 seconds
+
+        ws.onclose = function () {
           setTimeout(connectWebSocket, 3000);
         };
-        
-        ws.onerror = function(error) {
+
+        ws.onerror = function (error) {
           console.error('WebSocket error:', error);
-          updateStatus('Connection error', false);
         };
       } catch (error) {
         console.error('Failed to connect WebSocket:', error);
-        updateStatus('WebSocket not available', false);
       }
     }
 
-    // Handle transcription chunks
+    // Handle transcription chunks (from WebSocket)
     function handleTranscriptionChunk(data) {
       if (!translationEnabled) return;
-      
+
       const { text, speaker, timestamp, sessionId } = data;
-      
+
       if (!text || !text.trim()) return;
-      
-      // Create or update transcription item
+
       let item = transcriptionItems.get(sessionId);
-      
+
       if (!item) {
-        // Create new item
         item = {
           id: sessionId,
           speaker: speaker || 'Unknown',
@@ -610,19 +708,14 @@
           translating: false,
           element: null
         };
-        
-        // Add to DOM
+
         addTranscriptionItem(item);
         transcriptionItems.set(sessionId, item);
-        
-        // Start translation
         translateAndSpeak(item);
       } else {
-        // Update existing item
         item.originalText = text;
         updateTranscriptionItem(item);
-        
-        // Re-translate if not already translating
+
         if (!item.translating) {
           translateAndSpeak(item);
         }
@@ -634,9 +727,9 @@
       const itemElement = document.createElement('div');
       itemElement.className = 'transcription-item';
       itemElement.id = `transcription-${item.id}`;
-      
+
       const time = new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      
+
       itemElement.innerHTML = `
         <div class="item-header">
           <span class="speaker-name">${item.speaker}</span>
@@ -645,12 +738,10 @@
         <div class="original-text">${item.originalText}</div>
         <div class="translated-text translating">Translating...</div>
       `;
-      
-      // Add to top of list
+
       transcriptionList.insertBefore(itemElement, transcriptionList.firstChild);
       item.element = itemElement;
-      
-      // Limit to 50 items
+
       while (transcriptionList.children.length > 50) {
         const lastChild = transcriptionList.lastChild;
         const lastId = lastChild.id.replace('transcription-', '');
@@ -662,7 +753,7 @@
     // Update transcription item in DOM
     function updateTranscriptionItem(item) {
       if (!item.element) return;
-      
+
       const originalTextElement = item.element.querySelector('.original-text');
       if (originalTextElement) {
         originalTextElement.textContent = item.originalText;
@@ -672,10 +763,10 @@
     // Translate and speak text
     async function translateAndSpeak(item) {
       if (item.translating) return;
-      
+
       item.translating = true;
       const targetLang = languageSelect.value;
-      
+
       try {
         const response = await fetch('/api/tts', {
           method: 'POST',
@@ -687,15 +778,14 @@
             targetLang: targetLang
           })
         });
-        
+
         if (!response.ok) throw new Error('Translation request failed');
-        
+
         const data = await response.json();
-        
+
         if (data.translatedText) {
           item.translatedText = data.translatedText;
-          
-          // Update DOM
+
           if (item.element) {
             const translatedTextElement = item.element.querySelector('.translated-text');
             if (translatedTextElement) {
@@ -704,14 +794,13 @@
               item.element.classList.add('translated');
             }
           }
-          
-          // Play audio if available
+
           if (data.audioUrl) {
             if (currentAudio) {
               currentAudio.pause();
               currentAudio = null;
             }
-            
+
             currentAudio = new Audio(data.audioUrl);
             currentAudio.play().catch(err => console.error('Audio play error:', err));
           }
@@ -720,8 +809,7 @@
         }
       } catch (error) {
         console.error('Translation error:', error);
-        
-        // Update DOM with error
+
         if (item.element) {
           const translatedTextElement = item.element.querySelector('.translated-text');
           if (translatedTextElement) {
@@ -736,23 +824,27 @@
     }
 
     // Initialize
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       console.log('Orbit Conference initialized');
-      
+
       // Set home nav as active by default
       document.getElementById('home-nav').classList.add('active');
-      
-      // Connect to WebSocket
+
+      // Initialize Jitsi
+      initJitsi();
+
+      // Connect to WebSocket as fallback
       connectWebSocket();
-      
+
       // Update status
-      updateStatus('Ready - Connect to a meeting to start transcription', false);
+      updateStatus('Initializing meeting...', false);
     });
 
     // Handle language change
-    languageSelect.addEventListener('change', function() {
+    languageSelect.addEventListener('change', function () {
       console.log('Language changed to:', this.value);
     });
   </script>
 </body>
+
 </html>
