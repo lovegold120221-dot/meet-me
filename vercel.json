@@ -1,17 +1,8 @@
 {
   "framework": null,
-  "functions": {
-    "api/webhook.js": {
-      "runtime": "nodejs18"
-    }
-  },
   "routes": [
     {
       "src": "/webhook",
-      "dest": "/api/webhook.js"
-    },
-    {
-      "src": "/api/webhook.js",
       "dest": "/api/webhook.js"
     }
   ]
