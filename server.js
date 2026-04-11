@@ -46,7 +46,8 @@ const KID = process.env.JAAS_KID || 'vpaas-magic-cookie-b78ef1cd37804b878fe1c9d8
 
 // Cartesia TTS config
 const CARTESIA_API_KEY = process.env.CARTESIA_API_KEY;
-const CARTESIA_VOICE_ID = process.env.CARTESIA_VOICE_ID || '9c7e6604-52c6-424a-9f9f-2c4ad89f3bb9';
+const CARTESIA_VOICE_ID = process.env.CARTESIA_VOICE_ID || 'eded3658-4f70-4420-b021-1e70e14a8203';
+const CARTESIA_MODEL_ID = process.env.CARTESIA_MODEL_ID || 'sonic-2';
 
 // Translation function (placeholder - returns original text)
 // TODO: Replace with actual translation service (Google Translate, DeepL, etc.)
@@ -63,19 +64,24 @@ async function generateTTS(text) {
   
   console.log(`🎙️ Generating TTS for: "${text.substring(0, 50)}..."`);
   console.log(`   Voice ID: ${CARTESIA_VOICE_ID}`);
+  console.log(`   Model ID: ${CARTESIA_MODEL_ID}`);
   console.log(`   API Key: ${CARTESIA_API_KEY.substring(0, 10)}...`);
   
+  const requestPayload = {
+    model_id: CARTESIA_MODEL_ID,
+    transcript: text,
+    voice: { mode: 'id', id: CARTESIA_VOICE_ID },
+    output_format: { container: 'mp3', encoding: 'mp3', sample_rate: 24000 }
+  };
+  
+  console.log('   Request payload:', JSON.stringify(requestPayload, null, 2));
+  
   try {
-    const response = await axios.post('https://api.cartesia.ai/tts/bytes', {
-      transcript: text,
-      voice: { mode: 'id', id: CARTESIA_VOICE_ID },
-      output_format: { container: 'mp3', encoding: 'mp3', sample_rate: 24000 },
-      model: 'sonic-3-latest'
-    }, {
+    const response = await axios.post('https://api.cartesia.ai/tts/bytes', requestPayload, {
       headers: { 
         'X-API-Key': CARTESIA_API_KEY, 
         'Content-Type': 'application/json',
-        'Cartesia-Version': '2026-03-01'
+        'Cartesia-Version': '2025-04-16'
       },
       responseType: 'arraybuffer',
       timeout: 30000
