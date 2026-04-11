@@ -4,26 +4,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orbit Conference</title>
     <script src='https://8x8.vc/vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3/external_api.js' async></script>
     <style>
-        html, body, #jaas-container {
-            height: 100%;
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+
+        .entry-page {
+            text-align: center;
+            padding: 40px;
+            max-width: 500px;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #aaa;
+            margin-bottom: 40px;
+        }
+
+        .join-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .input-group {
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            border: 1px solid #333;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            border-color: #00d4ff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .input-group input::placeholder {
+            color: #555;
+        }
+
+        .join-btn {
+            padding: 16px 32px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .join-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .join-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Meeting View */
+        .meeting-view {
+            display: none;
+            width: 100%;
+            height: 100vh;
+        }
+
+        .meeting-view.active {
+            display: block;
+        }
+
+        .entry-page.hidden {
+            display: none;
+        }
+
+        .meeting-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        #jaas-container {
+            width: 100%;
+            height: 100%;
         }
     </style>
-    <script type="text/javascript">
-        window.onload = () => {
-            const api = new JitsiMeetExternalAPI("8x8.vc", {
-                roomName: "vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3/OrbitConference",
-                parentNode: document.querySelector('#jaas-container')
-            });
-        }
-    </script>
 </head>
 
 <body>
-    <div id="jaas-container"></div>
+    <!-- Entry Page -->
+    <div class="entry-page" id="entry-page">
+        <div class="logo">📹</div>
+        <h1>Orbit Conference</h1>
+        <p class="subtitle">Secure video meetings with translation</p>
+        
+        <form class="join-form" id="join-form">
+            <div class="input-group">
+                <label for="name-input">Your Name</label>
+                <input type="text" id="name-input" placeholder="Enter your name" required autocomplete="off">
+            </div>
+            <button type="submit" class="join-btn">Join Meeting</button>
+        </form>
+    </div>
+
+    <!-- Meeting View -->
+    <div class="meeting-view" id="meeting-view">
+        <div class="meeting-container">
+            <div id="jaas-container"></div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        const APP_ID = 'vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3';
+        const ROOM_NAME = 'OrbitConference';
+
+        let api = null;
+        let userName = '';
+
+        function showMeeting() {
+            document.getElementById('entry-page').classList.add('hidden');
+            document.getElementById('meeting-view').classList.add('active');
+
+            // Initialize Jitsi
+            api = new JitsiMeetExternalAPI("8x8.vc", {
+                roomName: `${APP_ID}/${ROOM_NAME}`,
+                parentNode: document.querySelector('#jaas-container'),
+                userInfo: {
+                    displayName: userName
+                },
+                // Prejoin config
+                prejoinPageEnabled: true
+            });
+        }
+
+        document.getElementById('join-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            userName = document.getElementById('name-input').value.trim();
+            
+            if (userName) {
+                showMeeting();
+            }
+        });
+    </script>
 </body>
 
 </html>
