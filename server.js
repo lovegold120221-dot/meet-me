@@ -47,7 +47,7 @@ const KID = process.env.JAAS_KID || 'vpaas-magic-cookie-b78ef1cd37804b878fe1c9d8
 // Cartesia TTS config
 const CARTESIA_API_KEY = process.env.CARTESIA_API_KEY;
 const CARTESIA_VOICE_ID = process.env.CARTESIA_VOICE_ID || 'eded3658-4f70-4420-b021-1e70e14a8203';
-const CARTESIA_MODEL_ID = process.env.CARTESIA_MODEL_ID || 'sonic-2';
+const CARTESIA_MODEL_ID = process.env.CARTESIA_MODEL_ID || 'sonic-3';
 
 // Translation function (placeholder - returns original text)
 // TODO: Replace with actual translation service (Google Translate, DeepL, etc.)
@@ -81,7 +81,7 @@ async function generateTTS(text) {
       headers: { 
         'X-API-Key': CARTESIA_API_KEY, 
         'Content-Type': 'application/json',
-        'Cartesia-Version': '2025-04-16'
+        'Cartesia-Version': '2026-03-01'
       },
       responseType: 'arraybuffer',
       timeout: 30000
