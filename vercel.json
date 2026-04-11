@@ -1,0 +1,34 @@
+{
+  "version": 2,
+  "name": "orbit-conference",
+  "builds": [
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "api/*.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/token",
+      "dest": "/api/token.js"
+    },
+    {
+      "src": "/api/webhook",
+      "dest": "/api/webhook.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "env": {
+    "JAAS_APP_ID": "vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3",
+    "JAAS_KID": "vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3/9e218f",
+    "PRIVATE_KEY_PATH": "./key.pk",
+    "WEBHOOK_SECRET": "whsec_238a704aaf54476c844e9e662f715ba1"
+  }
+}
