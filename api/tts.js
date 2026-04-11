@@ -2,28 +2,15 @@
 const axios = require('axios');
 
 const CARTESIA_API_KEY = process.env.CARTESIA_API_KEY;
-const CARTESIA_VOICE_ID = process.env.CARTESIA_VOICE_ID || '9c7e6604-52c6-424a-9f9f-2c4ad89f3bb9';
+const CARTESIA_VOICE_ID = process.env.CARTESIA_VOICE_ID || 'eded3658-4f70-4420-b021-1e70e14a8203';
+const CARTESIA_MODEL_ID = process.env.CARTESIA_MODEL_ID || 'sonic-2';
 
-// Simple translation using LibreTranslate (free, no API key needed for basic use)
-// Or you can use Google Translate, DeepL, etc.
+// Translation function (placeholder - returns original text)
+// TODO: Replace with Google Translate API (paid) or other service
 async function translateText(text, sourceLang = 'auto', targetLang = 'en') {
-  try {
-    // Using LibreTranslate public instance (rate limited, for production use your own)
-    const response = await axios.post('https://libretranslate.de/translate', {
-      q: text,
-      source: sourceLang,
-      target: targetLang,
-      format: 'text'
-    }, {
-      headers: { 'Content-Type': 'application/json' },
-      timeout: 5000
-    });
-    
-    return response.data.translatedText;
-  } catch (error) {
-    console.error('Translation error:', error.message);
-    return text; // Fallback to original text
-  }
+  // For now, return original text (translation will be added with Google API)
+  console.log(`🌐 Translation placeholder: "${text.substring(0, 50)}..."`);
+  return text;
 }
 
 // Cartesia TTS
@@ -34,6 +21,7 @@ async function generateTTS(text) {
   
   try {
     const response = await axios.post('https://api.cartesia.ai/tts/bytes', {
+      model_id: CARTESIA_MODEL_ID,
       transcript: text,
       voice: {
         mode: 'id',
@@ -43,13 +31,12 @@ async function generateTTS(text) {
         container: 'mp3',
         encoding: 'mp3',
         sample_rate: 24000
-      },
-      model: process.env.CARTESIA_MODEL_ID || 'sonic-3-latest'
+      }
     }, {
       headers: {
         'X-API-Key': CARTESIA_API_KEY,
         'Content-Type': 'application/json',
-        'Accept': 'audio/mpeg'
+        'Cartesia-Version': '2025-04-16'
       },
       responseType: 'arraybuffer',
       timeout: 15000
