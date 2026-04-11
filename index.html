@@ -30,10 +30,11 @@
     }
 
     .logo-sidebar {
-      position: absolute;
+      position: fixed;
       top: 16px;
       left: 16px;
-      z-index: 1000;
+      z-index: 10000;
+      pointer-events: none;
     }
 
     .logo-sidebar img {
@@ -116,7 +117,8 @@
 
 <body>
   <div class="logo-sidebar">
-    <img src="logo-white.png" alt="Orbit Conference Logo">
+    <img src="/logo-white.png" alt="Orbit Conference Logo"
+      onerror="this.style.display='none'; console.log('Logo failed to load')">
   </div>
   <div id="jaas-container"></div>
 </body>
