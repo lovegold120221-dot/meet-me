@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -143,7 +143,7 @@
         <div class="logo">📹</div>
         <h1>Orbit Conference</h1>
         <p class="subtitle">Secure video meetings with translation</p>
-        
+
         <form class="join-form" id="join-form">
             <div class="input-group">
                 <label for="name-input">Your Name</label>
@@ -183,10 +183,10 @@
             });
         }
 
-        document.getElementById('join-form').addEventListener('submit', function(e) {
+        document.getElementById('join-form').addEventListener('submit', function (e) {
             e.preventDefault();
             userName = document.getElementById('name-input').value.trim();
-            
+
             if (userName) {
                 showMeeting();
             }
