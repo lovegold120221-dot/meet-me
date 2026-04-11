@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Orbit Conference</title>
-  <script src='https://8x8.vc/vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3/external_api.js'></script>
+  <script src='https://8x8.vc/vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3/external_api.js' async></script>
   <style>
     body {
       margin: 0;
@@ -499,91 +499,62 @@
     const statusDot = document.getElementById('status-dot');
     const statusText = document.getElementById('status-text');
 
-    // Initialize Jitsi
-    async function initJitsi() {
-      console.log('Initializing Orbit Conference...');
+    // Initialize Jitsi - simplified approach
+    function initJitsi() {
+      console.log('Initializing Jitsi...');
 
-      // Wait for Jitsi API to be available
-      if (typeof JitsiMeetExternalAPI === 'undefined') {
-        console.log('Waiting for Jitsi API...');
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        if (typeof JitsiMeetExternalAPI === 'undefined') {
-          console.error('Jitsi API not loaded');
-          return;
-        }
-      }
+      jitsiApi = new JitsiMeetExternalAPI("8x8.vc", {
+        roomName: "vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3/conference",
+        parentNode: document.querySelector('#jaas-container'),
+        width: '100%',
+        height: '100%'
+      });
 
-      const roomName = 'conference';
-      const userName = 'Orbit User';
-      const isModerator = true;
-      const jaasDomain = '8x8.vc';
+      console.log('Jitsi loaded successfully');
 
-      try {
-        console.log('Fetching JWT token...');
-        const apiUrl = window.location.hostname.includes('localhost')
-          ? `/api/token?room=${roomName}&name=${encodeURIComponent(userName)}&moderator=${isModerator}`
-          : `${window.location.origin}/api/token?room=${roomName}&name=${encodeURIComponent(userName)}&moderator=${isModerator}`;
-        const response = await fetch(apiUrl);
-        const data = await response.json();
+      // Listen for events
+      jitsiApi.addEventListener('videoConferenceJoined', () => {
+        console.log('Joined conference');
+        updateStatus('In meeting - Translation ready', true);
+      });
 
-        console.log('Loading Jitsi...');
-        jitsiApi = new JitsiMeetExternalAPI(jaasDomain, {
-          roomName: `vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3/${roomName}`,
-          jwt: data.token,
-          parentNode: document.querySelector('#jaas-container'),
-          width: '100%',
-          height: '100%'
-        });
+      jitsiApi.addEventListener('videoConferenceLeft', () => {
+        console.log('Left conference');
+        updateStatus('Ready - Connect to a meeting to start transcription', false);
+      });
 
-        console.log('Jitsi loaded successfully');
+      // Capture transcription events from Jitsi
+      jitsiApi.addEventListener('transcriptionChunkReceived', (event) => {
+        console.log('Transcription chunk received:', event);
 
-        // Listen for events
-        jitsiApi.addEventListener('videoConferenceJoined', () => {
-          console.log('Joined conference');
-          updateStatus('In meeting - Translation ready', true);
-        });
+        // Only process if translation is enabled
+        if (!translationEnabled || !event.data || !event.data.text) return;
 
-        jitsiApi.addEventListener('videoConferenceLeft', () => {
-          console.log('Left conference');
-          updateStatus('Ready - Connect to a meeting to start transcription', false);
-        });
+        const text = event.data.text.trim();
+        if (!text) return;
 
-        // Capture transcription events from Jitsi
-        jitsiApi.addEventListener('transcriptionChunkReceived', (event) => {
-          console.log('Transcription chunk received:', event);
+        const speaker = event.data.participantName || 'Unknown';
+        const timestamp = new Date().toISOString();
+        const sessionId = event.data.participantId || `jitsi_${Date.now()}`;
 
-          // Only process if translation is enabled
-          if (!translationEnabled || !event.data || !event.data.text) return;
+        // Create transcription item
+        const item = {
+          id: sessionId,
+          speaker: speaker,
+          timestamp: timestamp,
+          originalText: text,
+          translatedText: null,
+          translating: false,
+          element: null
+        };
 
-          const text = event.data.text.trim();
-          if (!text) return;
+        // Add to DOM
+        addTranscriptionItem(item);
+        transcriptionItems.set(sessionId, item);
 
-          const speaker = event.data.participantName || 'Unknown';
-          const timestamp = new Date().toISOString();
-          const sessionId = event.data.participantId || `jitsi_${Date.now()}`;
-
-          // Create transcription item
-          const item = {
-            id: sessionId,
-            speaker: speaker,
-            timestamp: timestamp,
-            originalText: text,
-            translatedText: null,
-            translating: false,
-            element: null
-          };
-
-          // Add to DOM
-          addTranscriptionItem(item);
-          transcriptionItems.set(sessionId, item);
-
-          // Start translation
-          translateAndSpeak(item);
-        });
-
-      } catch (error) {
-        console.error('Failed to initialize meeting:', error);
-      }
+        // Start translation
+        translateAndSpeak(item);
+      });
     }
 
     // Navigation handling
@@ -824,7 +795,7 @@
     }
 
     // Initialize
-    document.addEventListener('DOMContentLoaded', function () {
+    window.onload = () => {
       console.log('Orbit Conference initialized');
 
       // Set home nav as active by default
@@ -838,7 +809,7 @@
 
       // Update status
       updateStatus('Initializing meeting...', false);
-    });
+    };
 
     // Handle language change
     languageSelect.addEventListener('change', function () {
