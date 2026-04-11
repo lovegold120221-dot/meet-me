@@ -70,7 +70,7 @@
       flex: 1;
       position: relative;
       padding-top: 60px;
-      padding-bottom: 70px;
+      height: calc(100vh - 60px);
     }
 
     #jaas-container {
@@ -79,86 +79,6 @@
       border: none;
       outline: none;
       position: relative;
-    }
-
-    .welcome-message {
-      text-align: center;
-      max-width: 600px;
-    }
-
-    .welcome-message h2 {
-      font-size: 32px;
-      margin-bottom: 16px;
-      background: linear-gradient(45deg, #00d4ff, #0099ff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .welcome-message p {
-      font-size: 16px;
-      opacity: 0.8;
-      line-height: 1.6;
-    }
-
-    /* Bottom Navigation */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 70px;
-      background: rgba(0, 0, 0, 0.4);
-      -webkit-backdrop-filter: blur(15px);
-      backdrop-filter: blur(15px);
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      padding: 8px;
-      border-radius: 8px;
-    }
-
-    .nav-item:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    .nav-item.active {
-      background: rgba(0, 212, 255, 0.2);
-    }
-
-    .nav-item svg {
-      width: 24px;
-      height: 24px;
-      fill: #fff;
-      opacity: 0.8;
-      transition: all 0.3s ease;
-    }
-
-    .nav-item.active svg {
-      fill: #00d4ff;
-      opacity: 1;
-    }
-
-    .nav-item span {
-      font-size: 11px;
-      opacity: 0.7;
-      transition: all 0.3s ease;
-    }
-
-    .nav-item.active span {
-      opacity: 1;
-      color: #00d4ff;
     }
 
     /* Translation Sidebar */
@@ -362,6 +282,35 @@
       background: #666;
       animation: none;
     }
+
+    /* Floating Translation Button */
+    .floating-translation-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      background: rgba(0, 212, 255, 0.9);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      z-index: 1001;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .floating-translation-btn:hover {
+      background: rgba(0, 212, 255, 1);
+      transform: scale(1.1);
+    }
+
+    .floating-translation-btn svg {
+      width: 24px;
+      height: 24px;
+      fill: white;
+    }
   </style>
 </head>
 
@@ -379,37 +328,6 @@
     <!-- Content Area with Jitsi -->
     <div class="content">
       <div id="jaas-container"></div>
-    </div>
-
-    <!-- Bottom Navigation -->
-    <div class="bottom-nav">
-      <div class="nav-item" id="home-nav">
-        <svg viewBox="0 0 24 24">
-          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
-        </svg>
-        <span>Home</span>
-      </div>
-      <div class="nav-item" id="meeting-nav">
-        <svg viewBox="0 0 24 24">
-          <path
-            d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" />
-        </svg>
-        <span>Meeting</span>
-      </div>
-      <div class="nav-item" id="translation-nav">
-        <svg viewBox="0 0 24 24">
-          <path
-            d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z" />
-        </svg>
-        <span>Translation</span>
-      </div>
-      <div class="nav-item" id="settings-nav">
-        <svg viewBox="0 0 24 24">
-          <path
-            d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" />
-        </svg>
-        <span>Settings</span>
-      </div>
     </div>
 
     <!-- Translation Sidebar -->
@@ -475,6 +393,14 @@
     <!-- Overlay -->
     <div class="overlay" id="overlay"></div>
 
+    <!-- Floating Translation Button -->
+    <div class="floating-translation-btn" id="translation-btn" title="Open Translation">
+      <svg viewBox="0 0 24 24">
+        <path
+          d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zM15.62 17l1.62-4.33L19.12 17h-3.24z" />
+      </svg>
+    </div>
+
     <!-- Status Indicator -->
     <div class="status-indicator" id="status-indicator">
       <div class="status-dot inactive" id="status-dot"></div>
@@ -493,7 +419,6 @@
     const translationSidebar = document.getElementById('translation-sidebar');
     const overlay = document.getElementById('overlay');
     const closeSidebar = document.getElementById('close-sidebar');
-    const translationNav = document.getElementById('translation-nav');
     const transcriptionList = document.getElementById('transcription-list');
     const languageSelect = document.getElementById('target-language');
     const statusDot = document.getElementById('status-dot');
@@ -557,31 +482,9 @@
       });
     }
 
-    // Navigation handling
-    document.querySelectorAll('.nav-item').forEach(item => {
-      item.addEventListener('click', function () {
-        // Remove active class from all items
-        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-
-        // Add active class to clicked item
-        this.classList.add('active');
-
-        // Handle specific navigation
-        if (this.id === 'translation-nav') {
-          toggleTranslationSidebar();
-        } else if (this.id === 'home-nav') {
-          closeTranslationSidebar();
-        } else if (this.id === 'meeting-nav') {
-          if (jitsiApi) {
-            // Jitsi is already embedded, just show it
-            document.getElementById('jaas-container').style.display = 'block';
-          } else {
-            initJitsi();
-          }
-        } else if (this.id === 'settings-nav') {
-          alert('Settings coming soon!');
-        }
-      });
+    // Floating translation button handler
+    document.getElementById('translation-btn').addEventListener('click', function () {
+      toggleTranslationSidebar();
     });
 
     // Sidebar controls
@@ -797,9 +700,6 @@
     // Initialize
     window.onload = () => {
       console.log('Orbit Conference initialized');
-
-      // Set home nav as active by default
-      document.getElementById('home-nav').classList.add('active');
 
       // Initialize Jitsi
       initJitsi();
