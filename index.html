@@ -1,661 +1,758 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Orbit Conference</title>
-  <script src='https://8x8.vc/vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3/external_api.js'></script>
   <style>
-    * {
+    body {
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
-    }
-
-    html,
-    body {
-      height: 100%;
-      width: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: white;
+      height: 100vh;
       overflow: hidden;
-      background: #000;
     }
 
-    #jaas-container {
-      height: 100%;
+    /* Main Container */
+    .main-container {
       width: 100%;
-      border: none;
-      outline: none;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
       position: relative;
     }
 
-    .logo-sidebar {
+    /* Header */
+    .header {
       position: fixed;
-      top: 16px;
-      left: 16px;
-      z-index: 10000;
-      pointer-events: none;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: rgba(0, 0, 0, 0.3);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      z-index: 1000;
     }
 
-    .logo-sidebar img {
-      width: 80px;
-      height: 80px;
-      object-fit: cover;
-      border-radius: 50%;
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
-    /* Translation Control Panel */
-    .translation-panel {
+    .logo img {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+    }
+
+    .logo h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      background: linear-gradient(45deg, #00d4ff, #0099ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Content Area */
+    .content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 20px 80px;
+    }
+
+    .welcome-message {
+      text-align: center;
+      max-width: 600px;
+    }
+
+    .welcome-message h2 {
+      font-size: 32px;
+      margin-bottom: 16px;
+      background: linear-gradient(45deg, #00d4ff, #0099ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .welcome-message p {
+      font-size: 16px;
+      opacity: 0.8;
+      line-height: 1.6;
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
       position: fixed;
-      bottom: 20px;
-      left: 20px;
-      z-index: 10000;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 70px;
+      background: rgba(0, 0, 0, 0.4);
+      -webkit-backdrop-filter: blur(15px);
+      backdrop-filter: blur(15px);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .nav-item {
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      align-items: flex-start;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      padding: 8px;
+      border-radius: 8px;
     }
 
-    .translation-panel select {
-      background: rgba(0, 0, 0, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 6px;
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-item.active {
+      background: rgba(0, 212, 255, 0.2);
+    }
+
+    .nav-item svg {
+      width: 24px;
+      height: 24px;
+      fill: #fff;
+      opacity: 0.8;
+      transition: all 0.3s ease;
+    }
+
+    .nav-item.active svg {
+      fill: #00d4ff;
+      opacity: 1;
+    }
+
+    .nav-item span {
+      font-size: 11px;
+      opacity: 0.7;
+      transition: all 0.3s ease;
+    }
+
+    .nav-item.active span {
+      opacity: 1;
+      color: #00d4ff;
+    }
+
+    /* Translation Sidebar */
+    .translation-sidebar {
+      position: fixed;
+      top: 0;
+      left: -400px;
+      width: 400px;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.95);
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+      transition: left 0.3s ease;
+      z-index: 1001;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .translation-sidebar.open {
+      left: 0;
+    }
+
+    .sidebar-header {
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #00d4ff;
+    }
+
+    .close-sidebar {
+      background: none;
+      border: none;
       color: #fff;
-      padding: 8px 12px;
-      font-size: 13px;
-      min-width: 160px;
+      font-size: 24px;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.3s ease;
+    }
+
+    .close-sidebar:hover {
+      opacity: 1;
+    }
+
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .language-selector {
+      margin-bottom: 20px;
+    }
+
+    .language-selector label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0.9;
+    }
+
+    .language-selector select {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      color: #fff;
+      padding: 12px;
+      font-size: 14px;
       cursor: pointer;
     }
 
-    .translation-panel select option {
+    .language-selector select option {
       background: #1a1a1a;
       color: #fff;
     }
 
-    .translation-btn {
-      background: #4CAF50;
-      border: none;
-      border-radius: 6px;
-      color: #fff;
-      padding: 10px 20px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .translation-btn:hover {
-      background: #45a049;
-    }
-
-    .translation-btn.active {
-      background: #f44336;
-    }
-
-    .translation-btn svg {
-      width: 18px;
-      height: 18px;
-      fill: #fff;
-    }
-
-    .tts-status {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      background: rgba(0, 0, 0, 0.9);
-      color: white;
-      padding: 12px 16px;
-      border-radius: 8px;
-      font-size: 13px;
-      max-width: 400px;
-      z-index: 10000;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: all 0.3s ease;
-      -webkit-backdrop-filter: blur(10px);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .tts-status.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .translation-display {
+    .transcription-list {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 12px;
     }
 
-    .original-text {
-      color: #fff;
-      opacity: 0.9;
-      padding: 8px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 4px;
+    .transcription-item {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 12px;
       border-left: 3px solid #4CAF50;
     }
 
-    .translated-text {
-      color: #fff;
-      padding: 8px;
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 4px;
-      border-left: 3px solid #2196F3;
+    .transcription-item.translated {
+      border-left-color: #2196F3;
     }
 
-    .lang-label {
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .speaker-name {
       font-weight: 600;
-      margin-bottom: 4px;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .tts-status .lang {
+      font-size: 12px;
       color: #4CAF50;
-      font-weight: 600;
+    }
+
+    .timestamp {
+      font-size: 11px;
+      opacity: 0.6;
+    }
+
+    .original-text {
+      margin-bottom: 8px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .translated-text {
+      font-size: 14px;
+      line-height: 1.4;
+      color: #00d4ff;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .translating {
+      font-style: italic;
+      opacity: 0.6;
+    }
+
+    .error {
+      color: #f44336;
+      font-style: italic;
+    }
+
+    /* Overlay */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 999;
+    }
+
+    .overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* Status Indicator */
+    .status-indicator {
+      position: fixed;
+      top: 80px;
+      left: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 1002;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4CAF50;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .status-dot.inactive {
+      background: #666;
+      animation: none;
     }
   </style>
-  <script type="text/javascript">
-    async function initJitsi() {
-      console.log('🚀 Initializing Orbit Conference...');
+</head>
+<body>
+  <div class="main-container">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">
+        <img src="/logo-white.png" alt="Orbit Conference Logo"
+          onerror="this.style.display='none'; console.log('Logo failed to load')">
+        <h1>Orbit Conference</h1>
+      </div>
+    </div>
 
-      // Wait for Jitsi API to be available
-      if (typeof JitsiMeetExternalAPI === 'undefined') {
-        console.log('⏳ Waiting for Jitsi API...');
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        if (typeof JitsiMeetExternalAPI === 'undefined') {
-          console.error('❌ Jitsi API not loaded. Check if external_api.js loaded correctly.');
-          document.querySelector('#jaas-container').innerHTML = `
-            <div style="color: white; padding: 50px; text-align: center; font-family: sans-serif;">
-              <h2>Failed to load Jitsi API</h2>
-              <p>The video conferencing library could not be loaded.</p>
-              <p>Please check your internet connection and refresh.</p>
-            </div>
-          `;
-          return;
+    <!-- Content Area -->
+    <div class="content">
+      <div class="welcome-message">
+        <h2>Welcome to Orbit Conference</h2>
+        <p>Your advanced meeting platform with real-time transcription and translation capabilities.</p>
+        <p>Join a meeting to get started, or tap the translation icon to view live transcriptions.</p>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+      <div class="nav-item" id="home-nav">
+        <svg viewBox="0 0 24 24">
+          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+        </svg>
+        <span>Home</span>
+      </div>
+      <div class="nav-item" id="meeting-nav">
+        <svg viewBox="0 0 24 24">
+          <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+        </svg>
+        <span>Meeting</span>
+      </div>
+      <div class="nav-item" id="translation-nav">
+        <svg viewBox="0 0 24 24">
+          <path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+        </svg>
+        <span>Translation</span>
+      </div>
+      <div class="nav-item" id="settings-nav">
+        <svg viewBox="0 0 24 24">
+          <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+        </svg>
+        <span>Settings</span>
+      </div>
+    </div>
+
+    <!-- Translation Sidebar -->
+    <div class="translation-sidebar" id="translation-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">Live Translation</div>
+        <button class="close-sidebar" id="close-sidebar">&times;</button>
+      </div>
+      <div class="sidebar-content">
+        <div class="language-selector">
+          <label for="target-language">Translate to:</label>
+          <select id="target-language" title="Select translation language" aria-label="Select translation language">
+            <option value="en">English</option>
+            <option value="nl">Dutch (Flemish)</option>
+            <option value="de">German</option>
+            <option value="fr">French</option>
+            <option value="es">Spanish</option>
+            <option value="it">Italian</option>
+            <option value="pt">Portuguese</option>
+            <option value="ja">Japanese</option>
+            <option value="zh">Chinese</option>
+            <option value="ko">Korean</option>
+            <option value="hi">Hindi</option>
+            <option value="ru">Russian</option>
+            <option value="ar">Arabic</option>
+            <option value="tr">Turkish</option>
+            <option value="pl">Polish</option>
+            <option value="sv">Swedish</option>
+            <option value="tl">Filipino (Tagalog)</option>
+            <option value="bg">Bulgarian</option>
+            <option value="ro">Romanian</option>
+            <option value="cs">Czech</option>
+            <option value="el">Greek</option>
+            <option value="fi">Finnish</option>
+            <option value="hr">Croatian</option>
+            <option value="ms">Malay</option>
+            <option value="sk">Slovak</option>
+            <option value="da">Danish</option>
+            <option value="ta">Tamil</option>
+            <option value="uk">Ukrainian</option>
+            <option value="hu">Hungarian</option>
+            <option value="no">Norwegian</option>
+            <option value="vi">Vietnamese</option>
+            <option value="bn">Bengali</option>
+            <option value="th">Thai</option>
+            <option value="he">Hebrew</option>
+            <option value="ka">Georgian</option>
+            <option value="id">Indonesian</option>
+            <option value="te">Telugu</option>
+            <option value="gu">Gujarati</option>
+            <option value="kn">Kannada</option>
+            <option value="ml">Malayalam</option>
+            <option value="mr">Marathi</option>
+            <option value="pa">Punjabi</option>
+          </select>
+        </div>
+        <div class="transcription-list" id="transcription-list">
+          <!-- Transcription items will be added here dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Status Indicator -->
+    <div class="status-indicator" id="status-indicator">
+      <div class="status-dot inactive" id="status-dot"></div>
+      <span id="status-text">Disconnected</span>
+    </div>
+  </div>
+
+  <script>
+    // Translation state
+    let translationEnabled = false;
+    let currentAudio = null;
+    let transcriptionItems = new Map(); // Store transcription items by ID
+
+    // DOM elements
+    const translationSidebar = document.getElementById('translation-sidebar');
+    const overlay = document.getElementById('overlay');
+    const closeSidebar = document.getElementById('close-sidebar');
+    const translationNav = document.getElementById('translation-nav');
+    const transcriptionList = document.getElementById('transcription-list');
+    const languageSelect = document.getElementById('target-language');
+    const statusDot = document.getElementById('status-dot');
+    const statusText = document.getElementById('status-text');
+
+    // Navigation handling
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', function() {
+        // Remove active class from all items
+        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+        
+        // Add active class to clicked item
+        this.classList.add('active');
+        
+        // Handle specific navigation
+        if (this.id === 'translation-nav') {
+          toggleTranslationSidebar();
+        } else if (this.id === 'home-nav') {
+          closeTranslationSidebar();
+        } else if (this.id === 'meeting-nav') {
+          window.location.href = 'https://meet.eburon.ai';
+        } else if (this.id === 'settings-nav') {
+          alert('Settings coming soon!');
+        }
+      });
+    });
+
+    // Sidebar controls
+    function toggleTranslationSidebar() {
+      if (translationSidebar.classList.contains('open')) {
+        closeTranslationSidebar();
+      } else {
+        openTranslationSidebar();
+      }
+    }
+
+    function openTranslationSidebar() {
+      translationSidebar.classList.add('open');
+      overlay.classList.add('active');
+      translationNav.classList.add('active');
+      
+      // Enable translation when sidebar opens
+      if (!translationEnabled) {
+        translationEnabled = true;
+        updateStatus('Listening for transcriptions...', true);
+      }
+    }
+
+    function closeTranslationSidebar() {
+      translationSidebar.classList.remove('open');
+      overlay.classList.remove('active');
+      translationNav.classList.remove('active');
+      
+      // Keep translation enabled even when sidebar is closed
+    }
+
+    // Close sidebar when clicking overlay
+    overlay.addEventListener('click', closeTranslationSidebar);
+    closeSidebar.addEventListener('click', closeTranslationSidebar);
+
+    // Status indicator
+    function updateStatus(text, active = false) {
+      statusText.textContent = text;
+      if (active) {
+        statusDot.classList.remove('inactive');
+      } else {
+        statusDot.classList.add('inactive');
+      }
+    }
+
+    // WebSocket connection for real-time transcription
+    let ws = null;
+    
+    function connectWebSocket() {
+      try {
+        // Connect to WebSocket for real-time transcription updates
+        ws = new WebSocket('wss://meet.eburon.ai/ws');
+        
+        ws.onopen = function() {
+          console.log('Connected to transcription WebSocket');
+          updateStatus('Connected to transcription service', true);
+        };
+        
+        ws.onmessage = function(event) {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'transcription_chunk') {
+              handleTranscriptionChunk(data);
+            }
+          } catch (error) {
+            console.error('Error parsing WebSocket message:', error);
+          }
+        };
+        
+        ws.onclose = function() {
+          console.log('WebSocket connection closed');
+          updateStatus('Connection lost. Reconnecting...', false);
+          // Try to reconnect after 3 seconds
+          setTimeout(connectWebSocket, 3000);
+        };
+        
+        ws.onerror = function(error) {
+          console.error('WebSocket error:', error);
+          updateStatus('Connection error', false);
+        };
+      } catch (error) {
+        console.error('Failed to connect WebSocket:', error);
+        updateStatus('WebSocket not available', false);
+      }
+    }
+
+    // Handle transcription chunks
+    function handleTranscriptionChunk(data) {
+      if (!translationEnabled) return;
+      
+      const { text, speaker, timestamp, sessionId } = data;
+      
+      if (!text || !text.trim()) return;
+      
+      // Create or update transcription item
+      let item = transcriptionItems.get(sessionId);
+      
+      if (!item) {
+        // Create new item
+        item = {
+          id: sessionId,
+          speaker: speaker || 'Unknown',
+          timestamp: timestamp || new Date().toISOString(),
+          originalText: text,
+          translatedText: null,
+          translating: false,
+          element: null
+        };
+        
+        // Add to DOM
+        addTranscriptionItem(item);
+        transcriptionItems.set(sessionId, item);
+        
+        // Start translation
+        translateAndSpeak(item);
+      } else {
+        // Update existing item
+        item.originalText = text;
+        updateTranscriptionItem(item);
+        
+        // Re-translate if not already translating
+        if (!item.translating) {
+          translateAndSpeak(item);
         }
       }
+    }
 
-      const roomName = 'conference';
-      const userName = 'Orbit User';
-      const isModerator = true;
-      const jaasDomain = '8x8.vc';
+    // Add transcription item to DOM
+    function addTranscriptionItem(item) {
+      const itemElement = document.createElement('div');
+      itemElement.className = 'transcription-item';
+      itemElement.id = `transcription-${item.id}`;
+      
+      const time = new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
+      itemElement.innerHTML = `
+        <div class="item-header">
+          <span class="speaker-name">${item.speaker}</span>
+          <span class="timestamp">${time}</span>
+        </div>
+        <div class="original-text">${item.originalText}</div>
+        <div class="translated-text translating">Translating...</div>
+      `;
+      
+      // Add to top of list
+      transcriptionList.insertBefore(itemElement, transcriptionList.firstChild);
+      item.element = itemElement;
+      
+      // Limit to 50 items
+      while (transcriptionList.children.length > 50) {
+        const lastChild = transcriptionList.lastChild;
+        const lastId = lastChild.id.replace('transcription-', '');
+        transcriptionItems.delete(lastId);
+        lastChild.remove();
+      }
+    }
 
+    // Update transcription item in DOM
+    function updateTranscriptionItem(item) {
+      if (!item.element) return;
+      
+      const originalTextElement = item.element.querySelector('.original-text');
+      if (originalTextElement) {
+        originalTextElement.textContent = item.originalText;
+      }
+    }
+
+    // Translate and speak text
+    async function translateAndSpeak(item) {
+      if (item.translating) return;
+      
+      item.translating = true;
+      const targetLang = languageSelect.value;
+      
       try {
-        console.log('📡 Fetching JWT token...');
-        const apiUrl = window.location.hostname.includes('localhost')
-          ? `/api/token?room=${roomName}&name=${encodeURIComponent(userName)}&moderator=${isModerator}`
-          : `${window.location.origin}/api/token?room=${roomName}&name=${encodeURIComponent(userName)}&moderator=${isModerator}`;
-        const response = await fetch(apiUrl);
+        const response = await fetch('/api/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: item.originalText,
+            speaker: item.speaker,
+            sourceLang: 'auto',
+            targetLang: targetLang
+          })
+        });
+        
+        if (!response.ok) throw new Error('Translation request failed');
+        
         const data = await response.json();
-        console.log('✅ Token received:', data.token ? 'Valid token' : 'No token');
-
-        console.log('🎯 Loading Jitsi...');
-        const api = new JitsiMeetExternalAPI(jaasDomain, {
-          roomName: `vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3/${roomName}`,
-          jwt: data.token,
-          parentNode: document.querySelector('#jaas-container'),
-          width: '100%',
-          height: '100%'
-        });
-
-        console.log('✅ Jitsi loaded successfully');
-
-        // Listen for events
-        api.addEventListener('videoConferenceJoined', () => {
-          console.log('👤 Joined conference');
-        });
-
-        api.addEventListener('videoConferenceLeft', () => {
-          console.log('👋 Left conference');
-        });
-
-        // Translation + TTS
-        let translationEnabled = false;
-        let currentAudio = null;
-        let lastTranscript = '';
-
-        // Translation controls
-        const translationBtn = document.getElementById('translation-btn');
-        const languageSelect = document.getElementById('target-language');
-        const ttsStatus = document.getElementById('tts-status');
-        const btnText = translationBtn.querySelector('span');
-
-        // Toggle translation on/off
-        translationBtn.addEventListener('click', () => {
-          translationEnabled = !translationEnabled;
-          translationBtn.classList.toggle('active', translationEnabled);
-
-          if (translationEnabled) {
-            btnText.textContent = 'Stop Translation';
-            ttsStatus.innerHTML = `<span class="lang">🎧 Listening...</span> Select language: ${languageSelect.options[languageSelect.selectedIndex].text}`;
-            ttsStatus.classList.add('visible');
-            console.log('🎧 Translation enabled - listening for transcription');
-          } else {
-            btnText.textContent = 'Start Translation';
-            ttsStatus.classList.remove('visible');
+        
+        if (data.translatedText) {
+          item.translatedText = data.translatedText;
+          
+          // Update DOM
+          if (item.element) {
+            const translatedTextElement = item.element.querySelector('.translated-text');
+            if (translatedTextElement) {
+              translatedTextElement.textContent = data.translatedText;
+              translatedTextElement.classList.remove('translating');
+              item.element.classList.add('translated');
+            }
+          }
+          
+          // Play audio if available
+          if (data.audioUrl) {
             if (currentAudio) {
               currentAudio.pause();
               currentAudio = null;
             }
-            console.log('🛑 Translation disabled');
+            
+            currentAudio = new Audio(data.audioUrl);
+            currentAudio.play().catch(err => console.error('Audio play error:', err));
           }
-        });
-
-        // Capture transcription events from Jitsi
-        api.addEventListener('transcriptionChunkReceived', (event) => {
-          console.log('Transcription chunk received:', event);
-
-          // Only process if translation is enabled
-          if (!translationEnabled || !event.data || !event.data.text) return;
-
-          const text = event.data.text.trim();
-          if (!text || text === lastTranscript) return;
-
-          lastTranscript = text;
-          const speaker = event.data.participantName || 'Speaker';
-          const targetLang = languageSelect.value;
-          const targetLangName = languageSelect.options[languageSelect.selectedIndex].text;
-
-          // Show original transcription immediately
-          ttsStatus.innerHTML = `
-            <div class="translation-display">
-              <div class="original-text">
-                <div class="lang-label">Original (${speaker})</div>
-                <div>${text}</div>
-              </div>
-              <div class="translated-text">
-                <div class="lang-label">Translating to ${targetLangName}...</div>
-                <div style="opacity: 0.6; font-style: italic;">Please wait...</div>
-              </div>
-            </div>
-          `;
-          ttsStatus.classList.add('visible');
-
-          // Send to backend for translation + TTS
-          fetchTranslationTTS(text, speaker, targetLang);
-        });
-
-        // Translation + TTS function
-        async function fetchTranslationTTS(text, speaker, targetLang) {
-          try {
-            const apiUrl = window.location.hostname.includes('localhost')
-              ? '/api/tts'
-              : `${window.location.origin}/api/tts`;
-
-            console.log(`🌍 Translating to ${targetLang}: "${text.substring(0, 50)}..."`);
-
-            const response = await fetch(apiUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                text,
-                speaker,
-                sourceLang: 'auto',
-                targetLang: targetLang || 'en'
-              })
-            });
-
-            if (!response.ok) throw new Error('TTS request failed');
-
-            const data = await response.json();
-            const targetLangName = languageSelect.options[languageSelect.selectedIndex].text;
-
-            if (data.audioUrl) {
-              // Play audio
-              if (currentAudio) {
-                currentAudio.pause();
-                currentAudio = null;
-              }
-
-              currentAudio = new Audio(data.audioUrl);
-              currentAudio.play().catch(err => console.error('Audio play error:', err));
-
-              // Show translation result with both original and translated text
-              ttsStatus.innerHTML = `
-                <div class="translation-display">
-                  <div class="original-text">
-                    <div class="lang-label">Original (${data.speaker})</div>
-                    <div>${data.originalText}</div>
-                  </div>
-                  <div class="translated-text">
-                    <div class="lang-label">Translation (${targetLangName})</div>
-                    <div>${data.translatedText}</div>
-                  </div>
-                </div>
-              `;
-              ttsStatus.classList.add('visible');
-            } else {
-              // Show error but keep original text visible
-              ttsStatus.innerHTML = `
-                <div class="translation-display">
-                  <div class="original-text">
-                    <div class="lang-label">Original (${data.speaker || speaker})</div>
-                    <div>${text}</div>
-                  </div>
-                  <div class="translated-text" style="background: rgba(255, 0, 0, 0.2); border-left-color: #f44336;">
-                    <div class="lang-label">Error</div>
-                    <div>${data.error || 'Translation failed'}</div>
-                  </div>
-                </div>
-              `;
-              ttsStatus.classList.add('visible');
-            }
-          } catch (error) {
-            console.error('Translation/TTS error:', error);
-            const targetLangName = languageSelect.options[languageSelect.selectedIndex].text;
-
-            // Show error but keep original text visible
-            ttsStatus.innerHTML = `
-              <div class="translation-display">
-                <div class="original-text">
-                  <div class="lang-label">Original (${speaker})</div>
-                  <div>${text}</div>
-                </div>
-                <div class="translated-text" style="background: rgba(255, 0, 0, 0.2); border-left-color: #f44336;">
-                  <div class="lang-label">Error</div>
-                  <div>Translation failed: ${error.message}</div>
-                </div>
-              </div>
-            `;
-            ttsStatus.classList.add('visible');
+        } else {
+          throw new Error(data.error || 'Translation failed');
+        }
+      } catch (error) {
+        console.error('Translation error:', error);
+        
+        // Update DOM with error
+        if (item.element) {
+          const translatedTextElement = item.element.querySelector('.translated-text');
+          if (translatedTextElement) {
+            translatedTextElement.textContent = `Translation failed: ${error.message}`;
+            translatedTextElement.classList.add('error');
+            translatedTextElement.classList.remove('translating');
           }
         }
-
-      } catch (error) {
-        console.error('❌ Failed to initialize meeting:', error);
-        document.querySelector('#jaas-container').innerHTML = `
-          <div style="color: white; padding: 50px; text-align: center; font-family: sans-serif;">
-            <h2>Failed to load conference</h2>
-            <p>Error: ${error.message}</p>
-            <p>Please check the console for details.</p>
-          </div>
-        `;
+      } finally {
+        item.translating = false;
       }
     }
 
-    window.onload = initJitsi;
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Orbit Conference initialized');
+      
+      // Set home nav as active by default
+      document.getElementById('home-nav').classList.add('active');
+      
+      // Connect to WebSocket
+      connectWebSocket();
+      
+      // Update status
+      updateStatus('Ready - Connect to a meeting to start transcription', false);
+    });
+
+    // Handle language change
+    languageSelect.addEventListener('change', function() {
+      console.log('Language changed to:', this.value);
+    });
   </script>
-</head>
-
-<body>
-  <div class="logo-sidebar">
-    <img src="/logo-white.png" alt="Orbit Conference Logo"
-      onerror="this.style.display='none'; console.log('Logo failed to load')">
-  </div>
-
-  <!-- Translation Panel -->
-  <div class="translation-panel">
-    <select id="target-language" title="Select translation language" aria-label="Select translation language">
-      <option value="en">English</option>
-      <option value="nl">Dutch (Flemish)</option>
-      <option value="ab">Abkhaz</option>
-      <option value="ace">Acehnese</option>
-      <option value="ach">Acholi</option>
-      <option value="aa">Afar</option>
-      <option value="af">Afrikaans</option>
-      <option value="sq">Albanian</option>
-      <option value="alz">Alur</option>
-      <option value="am">Amharic</option>
-      <option value="ar">Arabic</option>
-      <option value="hy">Armenian</option>
-      <option value="as">Assamese</option>
-      <option value="ava">Avar</option>
-      <option value="awa">Awadhi</option>
-      <option value="ay">Aymara</option>
-      <option value="az">Azerbaijani</option>
-      <option value="ban">Balinese</option>
-      <option value="bal">Baluchi</option>
-      <option value="bm">Bambara</option>
-      <option value="bci">Baoulé</option>
-      <option value="ba">Bashkir</option>
-      <option value="eu">Basque</option>
-      <option value="btx">Batak Karo</option>
-      <option value="bts">Batak Simalungun</option>
-      <option value="bbc">Batak Toba</option>
-      <option value="be">Belarusian</option>
-      <option value="bem">Bemba</option>
-      <option value="bn">Bengali</option>
-      <option value="bew">Betawi</option>
-      <option value="bho">Bhojpuri</option>
-      <option value="bik">Bikol</option>
-      <option value="bs">Bosnian</option>
-      <option value="br">Breton</option>
-      <option value="bg">Bulgarian</option>
-      <option value="bxr">Buryat</option>
-      <option value="yue">Cantonese</option>
-      <option value="ca">Catalan</option>
-      <option value="ceb">Cebuano</option>
-      <option value="ch">Chamorro</option>
-      <option value="ce">Chechen</option>
-      <option value="ny">Chichewa</option>
-      <option value="zh-Hans">Chinese (Simplified)</option>
-      <option value="zh-Hant">Chinese (Traditional)</option>
-      <option value="chk">Chuukese</option>
-      <option value="cv">Chuvash</option>
-      <option value="co">Corsican</option>
-      <option value="crh-Cyrl">Crimean Tatar (Cyrillic)</option>
-      <option value="crh-Latn">Crimean Tatar (Latin)</option>
-      <option value="hr">Croatian</option>
-      <option value="cs">Czech</option>
-      <option value="da">Danish</option>
-      <option value="fa-AF">Dari</option>
-      <option value="dv">Dhivehi</option>
-      <option value="din">Dinka</option>
-      <option value="doi">Dogri</option>
-      <option value="dbo">Dombe</option>
-      <option value="nl">Dutch</option>
-      <option value="dyu">Dyula</option>
-      <option value="dz">Dzongkha</option>
-      <option value="en">English</option>
-      <option value="eo">Esperanto</option>
-      <option value="et">Estonian</option>
-      <option value="ee">Ewe</option>
-      <option value="fo">Faroese</option>
-      <option value="fj">Fijian</option>
-      <option value="tl">Filipino</option>
-      <option value="fi">Finnish</option>
-      <option value="fon">Fon</option>
-      <option value="fr">French</option>
-      <option value="fr-CA">French (Canada)</option>
-      <option value="fy">Frisian</option>
-      <option value="fur">Friulian</option>
-      <option value="ff">Fulani</option>
-      <option value="gaa">Ga</option>
-      <option value="gl">Galician</option>
-      <option value="ka">Georgian</option>
-      <option value="de">German</option>
-      <option value="el">Greek</option>
-      <option value="gn">Guarani</option>
-      <option value="gu">Gujarati</option>
-      <option value="ht">Haitian Creole</option>
-      <option value="cnh">Hakha Chin</option>
-      <option value="ha">Hausa</option>
-      <option value="haw">Hawaiian</option>
-      <option value="he">Hebrew</option>
-      <option value="hil">Hiligaynon</option>
-      <option value="hi">Hindi</option>
-      <option value="hmn">Hmong</option>
-      <option value="hu">Hungarian</option>
-      <option value="hrx">Hunsrik</option>
-      <option value="iba">Iban</option>
-      <option value="is">Icelandic</option>
-      <option value="ig">Igbo</option>
-      <option value="ilo">Ilocano</option>
-      <option value="id">Indonesian</option>
-      <option value="ikt-Latn">Inuktut (Latin)</option>
-      <option value="ikt-Cans">Inuktut (Syllabics)</option>
-      <option value="ga">Irish</option>
-      <option value="it">Italian</option>
-      <option value="jam">Jamaican Patois</option>
-      <option value="ja">Japanese</option>
-      <option value="jv">Javanese</option>
-      <option value="kac">Jingpo</option>
-      <option value="kl">Kalaallisut</option>
-      <option value="kn">Kannada</option>
-      <option value="kr">Kanuri</option>
-      <option value="pam">Kapampangan</option>
-      <option value="kk">Kazakh</option>
-      <option value="kha">Khasi</option>
-      <option value="km">Khmer</option>
-      <option value="cgg">Kiga</option>
-      <option value="kg">Kikongo</option>
-      <option value="rw">Kinyarwanda</option>
-      <option value="ktu">Kituba</option>
-      <option value="brx">Kokborok</option>
-      <option value="kv">Komi</option>
-      <option value="gom">Konkani</option>
-      <option value="ko">Korean</option>
-      <option value="kri">Krio</option>
-      <option value="kmr">Kurdish (Kurmanji)</option>
-      <option value="ckb">Kurdish (Sorani)</option>
-      <option value="ky">Kyrgyz</option>
-      <option value="lo">Lao</option>
-      <option value="ltg">Latgalian</option>
-      <option value="la">Latin</option>
-      <option value="lv">Latvian</option>
-      <option value="lij">Ligurian</option>
-      <option value="li">Limburgish</option>
-      <option value="ln">Lingala</option>
-      <option value="lt">Lithuanian</option>
-      <option value="lmo">Lombard</option>
-      <option value="lg">Luganda</option>
-      <option value="luo">Luo</option>
-      <option value="lb">Luxembourgish</option>
-      <option value="mk">Macedonian</option>
-      <option value="mad">Madurese</option>
-      <option value="mai">Maithili</option>
-      <option value="mak">Makassar</option>
-      <option value="mg">Malagasy</option>
-      <option value="ms">Malay</option>
-      <option value="ms-Arab">Malay (Jawi)</option>
-      <option value="ml">Malayalam</option>
-      <option value="mt">Maltese</option>
-      <option value="mam">Mam</option>
-      <option value="gv">Manx</option>
-      <option value="mi">Maori</option>
-      <option value="mr">Marathi</option>
-      <option value="mh">Marshallese</option>
-      <option value="mwr">Marwadi</option>
-      <option value="mfe">Mauritian Creole</option>
-      <option value="mhr">Meadow Mari</option>
-      <option value="mni">Meiteilon (Manipuri)</option>
-      <option value="min">Minang</option>
-      <option value="lus">Mizo</option>
-      <option value="mn">Mongolian</option>
-      <option value="my">Myanmar (Burmese)</option>
-      <option value="nhe">Nahuatl (Eastern Huasteca)</option>
-      <option value="ndc">Ndau</option>
-      <option value="nr">Ndebele (South)</option>
-      <option value="new">Nepalbhasa (Newari)</option>
-      <option value="ne">Nepali</option>
-      <option value="nqo">NKo</option>
-      <option value="no">Norwegian</option>
-      <option value="nus">Nuer</option>
-      <option value="oc">Occitan</option>
-      <option value="or">Odia (Oriya)</option>
-      <option value="om">Oromo</option>
-      <option value="os">Ossetian</option>
-      <option value="pag">Pangasinan</option>
-      <option value="pap">Papiamento</option>
-      <option value="ps">Pashto</option>
-      <option value="fa">Persian</option>
-      <option value="pl">Polish</option>
-      <option value="pt-BR">Portuguese (Brazil)</option>
-      <option value="pt-PT">Portuguese (Portugal)</option>
-      <option value="pa-Guru">Punjabi (Gurmukhi)</option>
-      <option value="pa-Arab">Punjabi (Shahmukhi)</option>
-      <option value="qu">Quechua</option>
-      <option value="kek">Q'eqchi'</option>
-      <option value="rom">Romani</option>
-      <option value="ro">Romanian</option>
-      <option value="rn">Rundi</option>
-      <option value="ru">Russian</option>
-      <option value="se">Sami (North)</option>
-      <option value="sm">Samoan</option>
-      <option value="sg">Sango</option>
-      <option value="sa">Sanskrit</option>
-      <option value="sat-Latn">Santali (Latin)</option>
-      <option value="sat-Olck">Santali (Ol Chiki)</option>
-      <option value="gd">Scots Gaelic</option>
-      <option value="nso">Sepedi</option>
-      <option value="sr">Serbian</option>
-      <option value="st">Sesotho</option>
-      <option value="crs">Seychellois Creole</option>
-      <option value="shn">Shan</option>
-      <option value="sn">Shona</option>
-      <option value="scn">Sicilian</option>
-      <option value="szl">Silesian</option>
-      <option value="sd">Sindhi</option>
-      <option value="si">Sinhala</option>
-      <option value="sk">Slovak</option>
-      <option value="sl">Slovenian</option>
-      <option value="so">Somali</option>
-      <option value="es">Spanish</option>
-      <option value="su">Sundanese</option>
-      <option value="sus">Susu</option>
-      <option value="sw">Swahili</option>
-      <option value="ss">Swati</option>
-      <option value="sv">Swedish</option>
-      <option value="ty">Tahitian</option>
-      <option value="tg">Tajik</option>
-      <option value="tzm">Tamazight</option>
-      <option value="tzm-Tfng">Tamazight (Tifinagh)</option>
-      <option value="ta">Tamil</option>
-      <option value="tt">Tatar</option>
-      <option value="te">Telugu</option>
-      <option value="tet">Tetum</option>
-      <option value="th">Thai</option>
-      <option value="bo">Tibetan</option>
-      <option value="ti">Tigrinya</option>
-      <option value="tiv">Tiv</option>
-      <option value="tpi">Tok Pisin</option>
-      <option value="to">Tongan</option>
-      <option value="lua">Tshiluba</option>
-      <option value="ts">Tsonga</option>
-      <option value="tn">Tswana</option>
-      <option value="tu">Tulu</option>
-      <option value="tcy">Tumbuka</option>
-      <option value="tr">Turkish</option>
-      <option value="tk">Turkmen</option>
-      <option value="tyv">Tuvan</option>
-      <option value="tw">Twi</option>
-      <option value="udm">Udmurt</option>
-      <option value="uk">Ukrainian</option>
-      <option value="ur">Urdu</option>
-      <option value="ug">Uyghur</option>
-      <option value="uz">Uzbek</option>
-      <option value="ve">Venda</option>
-      <option value="vec">Venetian</option>
-      <option value="vi">Vietnamese</option>
-      <option value="war">Waray</option>
-      <option value="cy">Welsh</option>
-      <option value="wo">Wolof</option>
-      <option value="xh">Xhosa</option>
-      <option value="sah">Yakut</option>
-      <option value="yi">Yiddish</option>
-      <option value="yo">Yoruba</option>
-      <option value="yua">Yucatec Maya</option>
-      <option value="zap">Zapotec</option>
-      <option value="zu">Zulu</option>
-    </select>
-    <button class="translation-btn" id="translation-btn">
-      <svg viewBox="0 0 24 24">
-        <path
-          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-      </svg>
-      <span>Start Translation</span>
-    </button>
-  </div>
-  <div class="tts-status" id="tts-status"></div>
-
-  <div id="jaas-container"></div>
 </body>
-
 </html>

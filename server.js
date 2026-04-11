@@ -5,6 +5,8 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const axios = require('axios');
+const cors = require('cors');
+const WebSocket = require('ws');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,10 +14,11 @@ const PORT = process.env.PORT || 3000;
 // Webhook signing secret
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'whsec_238a704aaf54476c844e9e662f715ba1';
 
-// Parse JSON bodies for webhooks
+// Parse JSON bodies for webhooks - need raw body for signature verification
 app.use(express.json({
-  verify: (req, res, buf) => {
-    req.rawBody = buf.toString();
+  verify: (req, res, buf, encoding) => {
+    req.rawBody = buf;
+    req.bodyEncoding = encoding;
   }
 }));
 
@@ -161,22 +164,36 @@ function verifyWebhookSignature(req) {
     return false;
   }
   
-  // Create signed_payload: timestamp.body
-  const signedPayload = `${timestamp}.${req.rawBody}`;
+  // Create signed_payload: timestamp.body (actual JSON payload)
+  const rawBody = req.rawBody ? req.rawBody.toString('utf8') : JSON.stringify(req.body);
+  const signedPayload = `${timestamp}.${rawBody}`;
   
-  // Compute expected signature
+  // Compute expected signature using HMAC SHA256 + base64
   const expectedSignature = crypto
     .createHmac('sha256', WEBHOOK_SECRET)
-    .update(signedPayload)
+    .update(signedPayload, 'utf8')
     .digest('base64');
+  
+  console.log('  Webhook signature verification:');
+  console.log('    Timestamp:', timestamp);
+  console.log('    Received signature:', signature);
+  console.log('    Expected signature:', expectedSignature);
+  console.log('    Raw body length:', rawBody.length);
   
   // Constant-time comparison
   try {
-    return crypto.timingSafeEqual(
-      Buffer.from(signature),
-      Buffer.from(expectedSignature)
+    const isValid = crypto.timingSafeEqual(
+      Buffer.from(signature, 'utf8'),
+      Buffer.from(expectedSignature, 'utf8')
     );
+    
+    if (!isValid) {
+      console.log('  Signature mismatch - webhook rejected');
+    }
+    
+    return isValid;
   } catch (e) {
+    console.error('  Signature comparison error:', e);
     return false;
   }
 }
@@ -226,7 +243,17 @@ app.post('/webhook', (req, res) => {
       console.log('   📴 Live stream ended');
       break;
     case 'TRANSCRIPTION_CHUNK_RECEIVED':
-      console.log('   📝 Transcription chunk received');
+      console.log('   Transcription chunk received');
+      
+      // Broadcast transcription data to WebSocket clients
+      if (event.data && event.data.text) {
+        broadcastTranscription({
+          text: event.data.text,
+          speaker: event.data.participantName || 'Unknown',
+          timestamp: event.timestamp || new Date().toISOString(),
+          sessionId: event.sessionId || `chunk_${Date.now()}`
+        });
+      }
       break;
     case 'TRANSCRIPTION_UPLOADED':
       console.log('   📝 Transcription uploaded');
@@ -360,28 +387,78 @@ app.post('/api/tts', async (req, res) => {
       originalText: text,
       speaker: speaker || 'Unknown'
     });
-    
+
   } catch (error) {
     console.error('TTS endpoint error:', error.message);
-    res.status(500).json({
-      error: 'Failed to generate TTS',
-      message: error.message,
-      translatedText: text
-    });
+    res.status(500).json({ error: 'Translation failed' });
   }
 });
 
-app.listen(PORT, () => {
+// WebSocket server for real-time transcription
+const wss = new WebSocket.Server({ noServer: true });
+
+// Store connected clients
+const clients = new Set();
+
+// WebSocket connection handler
+wss.on('connection', (ws, req) => {
+  console.log('WebSocket client connected');
+  clients.add(ws);
+
+  // Send welcome message
+  ws.send(JSON.stringify({
+    type: 'connected',
+    message: 'Connected to transcription service'
+  }));
+
+  ws.on('close', () => {
+    console.log('WebSocket client disconnected');
+    clients.delete(ws);
+  });
+
+  ws.on('error', (error) => {
+    console.error('WebSocket error:', error);
+    clients.delete(ws);
+  });
+});
+
+// Broadcast transcription data to all connected clients
+function broadcastTranscription(data) {
+  const message = JSON.stringify({
+    type: 'transcription_chunk',
+    ...data
+  });
+
+  clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message);
+    }
+  });
+}
+
+// Start server
+const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Webhook endpoint: http://localhost:${PORT}/webhook`);
+  console.log(`TTS endpoint: http://localhost:${PORT}/api/tts`);
+  console.log(`WebSocket endpoint: ws://localhost:${PORT}`);
+
   if (!hasValidKey) {
-    console.log('\n⚠️  WARNING: Private key not found or invalid.');
+    console.log('\n\u26a0\ufe0f  WARNING: Private key not found or invalid.');
     console.log('   Expected file: key.pk with PRIVATE KEY');
     console.log('   JWT generation will fail.\n');
   } else {
-    console.log('✅ JWT generation ready (KID:', KID + ')');
+    console.log(' JWT generation ready (KID:', KID + ')');
   }
-  console.log('📁 Private key file:', PRIVATE_KEY_PATH);
-  console.log('📡 Webhook endpoint: POST /webhook');
-  console.log('🔊 TTS endpoint: POST /api/tts');
-  console.log('   Events will be logged to console\n');
+  console.log(' Private key file:', PRIVATE_KEY_PATH);
+  console.log(' Webhook endpoint: POST /webhook');
+  console.log(' TTS endpoint: POST /api/tts');
+  console.log('    Events will be logged to console\n');
+});
+
+// Handle WebSocket upgrade
+server.on('upgrade', (request, socket, head) => {
+  wss.handleUpgrade(request, socket, head, (ws) => {
+    wss.emit('connection', ws, request);
+  });
 });
