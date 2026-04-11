@@ -44,36 +44,60 @@
       border-radius: 50%;
     }
 
-    /* TTS Speaker Toggle */
-    .tts-toggle {
+    /* Translation Control Panel */
+    .translation-panel {
       position: fixed;
       bottom: 20px;
       left: 20px;
       z-index: 10000;
-      background: rgba(0, 0, 0, 0.8);
-      border: 2px solid #fff;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
       display: flex;
-      align-items: center;
-      justify-content: center;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .translation-panel select {
+      background: rgba(0, 0, 0, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 6px;
+      color: #fff;
+      padding: 8px 12px;
+      font-size: 13px;
+      min-width: 160px;
+      cursor: pointer;
+    }
+
+    .translation-panel select option {
+      background: #1a1a1a;
+      color: #fff;
+    }
+
+    .translation-btn {
+      background: #4CAF50;
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .tts-toggle:hover {
-      background: rgba(255, 255, 255, 0.2);
+    .translation-btn:hover {
+      background: #45a049;
     }
 
-    .tts-toggle.active {
-      background: #4CAF50;
-      border-color: #4CAF50;
+    .translation-btn.active {
+      background: #f44336;
     }
 
-    .tts-toggle svg {
-      width: 24px;
-      height: 24px;
+    .translation-btn svg {
+      width: 18px;
+      height: 18px;
       fill: #fff;
     }
 
@@ -158,49 +182,68 @@
           console.log('👋 Left conference');
         });
 
-        // Transcription + TTS
-        let ttsEnabled = false;
+        // Translation + TTS
+        let translationEnabled = false;
         let currentAudio = null;
         let lastTranscript = '';
 
-        // TTS Toggle button
-        const ttsToggle = document.getElementById('tts-toggle');
+        // Translation controls
+        const translationBtn = document.getElementById('translation-btn');
+        const languageSelect = document.getElementById('target-language');
         const ttsStatus = document.getElementById('tts-status');
+        const btnText = translationBtn.querySelector('span');
 
-        ttsToggle.addEventListener('click', () => {
-          ttsEnabled = !ttsEnabled;
-          ttsToggle.classList.toggle('active', ttsEnabled);
-          ttsStatus.textContent = ttsEnabled ? '🔊 TTS Active - Translation enabled' : '';
-          ttsStatus.classList.toggle('visible', ttsEnabled);
-          console.log('TTS:', ttsEnabled ? 'enabled' : 'disabled');
+        // Toggle translation on/off
+        translationBtn.addEventListener('click', () => {
+          translationEnabled = !translationEnabled;
+          translationBtn.classList.toggle('active', translationEnabled);
+
+          if (translationEnabled) {
+            btnText.textContent = 'Stop Translation';
+            ttsStatus.innerHTML = `<span class="lang">🎧 Listening...</span> Select language: ${languageSelect.options[languageSelect.selectedIndex].text}`;
+            ttsStatus.classList.add('visible');
+            console.log('🎧 Translation enabled - listening for transcription');
+          } else {
+            btnText.textContent = 'Start Translation';
+            ttsStatus.classList.remove('visible');
+            if (currentAudio) {
+              currentAudio.pause();
+              currentAudio = null;
+            }
+            console.log('🛑 Translation disabled');
+          }
         });
 
-        // Capture transcription events
+        // Capture transcription events from Jitsi
         api.addEventListener('transcriptionChunkReceived', (event) => {
-          console.log('📝 Transcription chunk:', event);
+          console.log('📝 Transcription chunk received:', event);
 
-          if (!ttsEnabled || !event.data || !event.data.text) return;
+          // Only process if translation is enabled
+          if (!translationEnabled || !event.data || !event.data.text) return;
 
           const text = event.data.text.trim();
           if (!text || text === lastTranscript) return;
 
           lastTranscript = text;
           const speaker = event.data.participantName || 'Speaker';
+          const targetLang = languageSelect.value;
 
-          // Show transcription
-          ttsStatus.innerHTML = `<span class="lang">📝 ${speaker}:</span> ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}`;
+          // Show original transcription
+          ttsStatus.innerHTML = `<span class="lang">📝 ${speaker}:</span> ${text.substring(0, 80)}${text.length > 80 ? '...' : ''}`;
           ttsStatus.classList.add('visible');
 
           // Send to backend for translation + TTS
-          fetchTranslationTTS(text, speaker);
+          fetchTranslationTTS(text, speaker, targetLang);
         });
 
         // Translation + TTS function
-        async function fetchTranslationTTS(text, speaker) {
+        async function fetchTranslationTTS(text, speaker, targetLang) {
           try {
             const apiUrl = window.location.hostname.includes('localhost')
               ? '/api/tts'
               : `${window.location.origin}/api/tts`;
+
+            console.log(`🌍 Translating to ${targetLang}: "${text.substring(0, 50)}..."`);
 
             const response = await fetch(apiUrl, {
               method: 'POST',
@@ -209,7 +252,7 @@
                 text,
                 speaker,
                 sourceLang: 'auto',
-                targetLang: 'en' // Change this based on user preference
+                targetLang: targetLang || 'en'
               })
             });
 
@@ -262,12 +305,32 @@
       onerror="this.style.display='none'; console.log('Logo failed to load')">
   </div>
 
-  <!-- TTS Toggle -->
-  <div class="tts-toggle" id="tts-toggle" title="Toggle Translation TTS">
-    <svg viewBox="0 0 24 24">
-      <path
-        d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
-    </svg>
+  <!-- Translation Panel -->
+  <div class="translation-panel">
+    <select id="target-language" title="Select translation language" aria-label="Select translation language">
+      <option value="en">🇬🇧 English</option>
+      <option value="nl">🇳🇱 Dutch (Flemish)</option>
+      <option value="de">🇩🇪 German</option>
+      <option value="fr">🇫🇷 French</option>
+      <option value="es">🇪🇸 Spanish</option>
+      <option value="it">🇮🇹 Italian</option>
+      <option value="pt">🇵🇹 Portuguese</option>
+      <option value="ja">🇯🇵 Japanese</option>
+      <option value="zh">🇨🇳 Chinese</option>
+      <option value="ko">🇰🇷 Korean</option>
+      <option value="hi">🇮🇳 Hindi</option>
+      <option value="ru">🇷🇺 Russian</option>
+      <option value="ar">🇸🇦 Arabic</option>
+      <option value="tr">🇹🇷 Turkish</option>
+      <option value="pl">🇵🇱 Polish</option>
+    </select>
+    <button class="translation-btn" id="translation-btn">
+      <svg viewBox="0 0 24 24">
+        <path
+          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+      </svg>
+      <span>Start Translation</span>
+    </button>
   </div>
   <div class="tts-status" id="tts-status"></div>
 

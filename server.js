@@ -49,13 +49,39 @@ const CARTESIA_API_KEY = process.env.CARTESIA_API_KEY;
 const CARTESIA_VOICE_ID = process.env.CARTESIA_VOICE_ID || 'eded3658-4f70-4420-b021-1e70e14a8203';
 const CARTESIA_MODEL_ID = process.env.CARTESIA_MODEL_ID || 'sonic-3';
 
-// Translation function (placeholder - returns original text)
-// TODO: Replace with actual translation service (Google Translate, DeepL, etc.)
+// Google Translate API
+const GOOGLE_TRANSLATE_API_KEY = process.env.GOOGLE_TRANSLATE_API_KEY;
+
 async function translateText(text, sourceLang = 'auto', targetLang = 'en') {
-  // For now, return original text
-  // In production, integrate with a translation API
-  console.log(`🌐 Translation skipped (same language or placeholder): "${text.substring(0, 50)}..."`);
-  return text;
+  if (!GOOGLE_TRANSLATE_API_KEY) {
+    console.log('🌐 No Google Translate API key, returning original text');
+    return text;
+  }
+  
+  try {
+    console.log(`🌐 Translating: "${text.substring(0, 50)}..." from ${sourceLang} to ${targetLang}`);
+    
+    const response = await axios.post(
+      `https://translation.googleapis.com/language/translate/v2?key=${GOOGLE_TRANSLATE_API_KEY}`,
+      {
+        q: text,
+        source: sourceLang === 'auto' ? undefined : sourceLang,
+        target: targetLang,
+        format: 'text'
+      },
+      { timeout: 10000 }
+    );
+    
+    const translatedText = response.data.data.translations[0].translatedText;
+    console.log(`✅ Translated: "${translatedText.substring(0, 50)}..."`);
+    return translatedText;
+  } catch (error) {
+    console.error('🌐 Google Translate error:', error.message);
+    if (error.response) {
+      console.error('Response:', error.response.data);
+    }
+    return text; // Fallback to original
+  }
 }
 
 // Cartesia TTS function
