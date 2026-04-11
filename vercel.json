@@ -40,6 +40,5 @@
     "CARTESIA_API_KEY": "sk_car_DHqGNxeSy38nNnVFD8Dv3Q",
     "CARTESIA_VOICE_ID": "eded3658-4f70-4420-b021-1e70e14a8203",
     "CARTESIA_MODEL_ID": "sonic-3-latest"
-  },
-  "domains": ["meet.eburon.ai"]
+  }
 }
