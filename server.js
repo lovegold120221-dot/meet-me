@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const axios = require('axios');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -42,6 +43,45 @@ try {
 // JaaS credentials
 const APP_ID = process.env.JAAS_APP_ID || 'vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3';
 const KID = process.env.JAAS_KID || 'vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3/9e218f';
+
+// Cartesia TTS config
+const CARTESIA_API_KEY = process.env.CARTESIA_API_KEY;
+const CARTESIA_VOICE_ID = process.env.CARTESIA_VOICE_ID || 'a0e99841-438c-4a64-b679-ae501692a3f4';
+
+// Translation function (LibreTranslate)
+async function translateText(text, sourceLang = 'auto', targetLang = 'en') {
+  try {
+    const response = await axios.post('https://libretranslate.de/translate', {
+      q: text,
+      source: sourceLang,
+      target: targetLang,
+      format: 'text'
+    }, { headers: { 'Content-Type': 'application/json' }, timeout: 5000 });
+    return response.data.translatedText;
+  } catch (error) {
+    console.error('Translation error:', error.message);
+    return text;
+  }
+}
+
+// Cartesia TTS function
+async function generateTTS(text) {
+  if (!CARTESIA_API_KEY) throw new Error('CARTESIA_API_KEY not configured');
+  
+  const response = await axios.post('https://api.cartesia.ai/tts/bytes', {
+    transcript: text,
+    voice: { mode: 'id', id: CARTESIA_VOICE_ID },
+    output_format: { container: 'mp3', encoding: 'mp3', sample_rate: 24000 },
+    model: 'sonic-english'
+  }, {
+    headers: { 'X-API-Key': CARTESIA_API_KEY, 'Content-Type': 'application/json', 'Accept': 'audio/mpeg' },
+    responseType: 'arraybuffer',
+    timeout: 15000
+  });
+  
+  const base64Audio = Buffer.from(response.data).toString('base64');
+  return `data:audio/mp3;base64,${base64Audio}`;
+}
 
 // Serve static files
 app.use(express.static(path.join(__dirname)));
@@ -237,6 +277,50 @@ app.get('/api/token', (req, res) => {
   }
 });
 
+// Translation + TTS endpoint
+app.post('/api/tts', async (req, res) => {
+  const { text, speaker, sourceLang = 'auto', targetLang = 'en' } = req.body;
+  
+  if (!text) {
+    return res.status(400).json({ error: 'Text is required' });
+  }
+  
+  try {
+    console.log(`🔊 TTS Request from ${speaker || 'Unknown'}: "${text.substring(0, 50)}..."`);
+    
+    // Step 1: Translate text
+    const translatedText = await translateText(text, sourceLang, targetLang);
+    console.log(`🌐 Translated: "${translatedText.substring(0, 50)}..."`);
+    
+    // Step 2: Generate TTS audio
+    if (!CARTESIA_API_KEY) {
+      return res.status(200).json({
+        translatedText,
+        audioUrl: null,
+        warning: 'CARTESIA_API_KEY not configured - translation only'
+      });
+    }
+    
+    const audioUrl = await generateTTS(translatedText);
+    console.log('✅ TTS generated successfully');
+    
+    res.status(200).json({
+      translatedText,
+      audioUrl,
+      originalText: text,
+      speaker: speaker || 'Unknown'
+    });
+    
+  } catch (error) {
+    console.error('TTS endpoint error:', error.message);
+    res.status(500).json({
+      error: 'Failed to generate TTS',
+      message: error.message,
+      translatedText: text
+    });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   if (!hasValidKey) {
@@ -246,7 +330,8 @@ app.listen(PORT, () => {
   } else {
     console.log('✅ JWT generation ready (KID:', KID + ')');
   }
-  console.log('� Private key file:', PRIVATE_KEY_PATH);
-  console.log('�� Webhook endpoint: POST /webhook');
+  console.log('📁 Private key file:', PRIVATE_KEY_PATH);
+  console.log('📡 Webhook endpoint: POST /webhook');
+  console.log('🔊 TTS endpoint: POST /api/tts');
   console.log('   Events will be logged to console\n');
 });

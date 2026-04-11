@@ -21,6 +21,10 @@
       "dest": "/api/webhook.js"
     },
     {
+      "src": "/api/tts",
+      "dest": "/api/tts.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
@@ -28,7 +32,6 @@
   "env": {
     "JAAS_APP_ID": "vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3",
     "JAAS_KID": "vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3/9e218f",
-    "PRIVATE_KEY_PATH": "./key.pk",
     "WEBHOOK_SECRET": "whsec_238a704aaf54476c844e9e662f715ba1"
   }
 }
