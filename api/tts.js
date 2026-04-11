@@ -2,7 +2,7 @@
 const axios = require('axios');
 
 const CARTESIA_API_KEY = process.env.CARTESIA_API_KEY;
-const CARTESIA_VOICE_ID = process.env.CARTESIA_VOICE_ID || 'a0e99841-438c-4a64-b679-ae501692a3f4'; // Default voice
+const CARTESIA_VOICE_ID = process.env.CARTESIA_VOICE_ID || '9c7e6604-52c6-424a-9f9f-2c4ad89f3bb9';
 
 // Simple translation using LibreTranslate (free, no API key needed for basic use)
 // Or you can use Google Translate, DeepL, etc.
@@ -44,7 +44,7 @@ async function generateTTS(text) {
         encoding: 'mp3',
         sample_rate: 24000
       },
-      model: 'sonic-english' // or 'sonic-multilingual' for other languages
+      model: process.env.CARTESIA_MODEL_ID || 'sonic-3-latest'
     }, {
       headers: {
         'X-API-Key': CARTESIA_API_KEY,

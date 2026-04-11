@@ -46,7 +46,7 @@ const KID = process.env.JAAS_KID || 'vpaas-magic-cookie-b78ef1cd37804b878fe1c9d8
 
 // Cartesia TTS config
 const CARTESIA_API_KEY = process.env.CARTESIA_API_KEY;
-const CARTESIA_VOICE_ID = process.env.CARTESIA_VOICE_ID || 'a0e99841-438c-4a64-b679-ae501692a3f4';
+const CARTESIA_VOICE_ID = process.env.CARTESIA_VOICE_ID || '9c7e6604-52c6-424a-9f9f-2c4ad89f3bb9';
 
 // Translation function (LibreTranslate)
 async function translateText(text, sourceLang = 'auto', targetLang = 'en') {
@@ -72,7 +72,7 @@ async function generateTTS(text) {
     transcript: text,
     voice: { mode: 'id', id: CARTESIA_VOICE_ID },
     output_format: { container: 'mp3', encoding: 'mp3', sample_rate: 24000 },
-    model: 'sonic-english'
+    model: 'sonic-3-latest'
   }, {
     headers: { 'X-API-Key': CARTESIA_API_KEY, 'Content-Type': 'application/json', 'Accept': 'audio/mpeg' },
     responseType: 'arraybuffer',
