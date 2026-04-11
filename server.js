@@ -48,39 +48,54 @@ const KID = process.env.JAAS_KID || 'vpaas-magic-cookie-b78ef1cd37804b878fe1c9d8
 const CARTESIA_API_KEY = process.env.CARTESIA_API_KEY;
 const CARTESIA_VOICE_ID = process.env.CARTESIA_VOICE_ID || '9c7e6604-52c6-424a-9f9f-2c4ad89f3bb9';
 
-// Translation function (LibreTranslate)
+// Translation function (placeholder - returns original text)
+// TODO: Replace with actual translation service (Google Translate, DeepL, etc.)
 async function translateText(text, sourceLang = 'auto', targetLang = 'en') {
-  try {
-    const response = await axios.post('https://libretranslate.de/translate', {
-      q: text,
-      source: sourceLang,
-      target: targetLang,
-      format: 'text'
-    }, { headers: { 'Content-Type': 'application/json' }, timeout: 5000 });
-    return response.data.translatedText;
-  } catch (error) {
-    console.error('Translation error:', error.message);
-    return text;
-  }
+  // For now, return original text
+  // In production, integrate with a translation API
+  console.log(`🌐 Translation skipped (same language or placeholder): "${text.substring(0, 50)}..."`);
+  return text;
 }
 
 // Cartesia TTS function
 async function generateTTS(text) {
   if (!CARTESIA_API_KEY) throw new Error('CARTESIA_API_KEY not configured');
   
-  const response = await axios.post('https://api.cartesia.ai/tts/bytes', {
-    transcript: text,
-    voice: { mode: 'id', id: CARTESIA_VOICE_ID },
-    output_format: { container: 'mp3', encoding: 'mp3', sample_rate: 24000 },
-    model: 'sonic-3-latest'
-  }, {
-    headers: { 'X-API-Key': CARTESIA_API_KEY, 'Content-Type': 'application/json', 'Accept': 'audio/mpeg' },
-    responseType: 'arraybuffer',
-    timeout: 15000
-  });
+  console.log(`🎙️ Generating TTS for: "${text.substring(0, 50)}..."`);
+  console.log(`   Voice ID: ${CARTESIA_VOICE_ID}`);
+  console.log(`   API Key: ${CARTESIA_API_KEY.substring(0, 10)}...`);
   
-  const base64Audio = Buffer.from(response.data).toString('base64');
-  return `data:audio/mp3;base64,${base64Audio}`;
+  try {
+    const response = await axios.post('https://api.cartesia.ai/tts/bytes', {
+      transcript: text,
+      voice: { mode: 'id', id: CARTESIA_VOICE_ID },
+      output_format: { container: 'mp3', encoding: 'mp3', sample_rate: 24000 },
+      model: 'sonic-3-latest'
+    }, {
+      headers: { 
+        'X-API-Key': CARTESIA_API_KEY, 
+        'Content-Type': 'application/json',
+        'Cartesia-Version': '2026-03-01'
+      },
+      responseType: 'arraybuffer',
+      timeout: 30000
+    });
+    
+    console.log('✅ TTS audio generated');
+    const base64Audio = Buffer.from(response.data).toString('base64');
+    return `data:audio/mp3;base64,${base64Audio}`;
+  } catch (error) {
+    if (error.response) {
+      console.error('Cartesia API error:', error.response.status);
+      // Convert arraybuffer error response to string
+      const errorData = error.response.data;
+      if (errorData) {
+        const errorText = Buffer.isBuffer(errorData) ? errorData.toString() : JSON.stringify(errorData);
+        console.error('Error response:', errorText);
+      }
+    }
+    throw error;
+  }
 }
 
 // Serve static files
@@ -279,10 +294,13 @@ app.get('/api/token', (req, res) => {
 
 // Translation + TTS endpoint
 app.post('/api/tts', async (req, res) => {
-  const { text, speaker, sourceLang = 'auto', targetLang = 'en' } = req.body;
+  console.log('📥 TTS request received:', req.body);
+  
+  const { text, speaker, sourceLang = 'auto', targetLang = 'en' } = req.body || {};
   
   if (!text) {
-    return res.status(400).json({ error: 'Text is required' });
+    console.log('❌ No text provided in request body');
+    return res.status(400).json({ error: 'Text is required', received: req.body });
   }
   
   try {
