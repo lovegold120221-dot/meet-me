@@ -2,12 +2,25 @@ const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const path = require('path');
 
-// Read private key
-const PRIVATE_KEY_PATH = process.env.PRIVATE_KEY_PATH || path.join(process.cwd(), 'key.pk');
-const PRIVATE_KEY = fs.readFileSync(PRIVATE_KEY_PATH, 'utf8');
-
 const APP_ID = process.env.JAAS_APP_ID || 'vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3';
 const KID = process.env.JAAS_KID || 'vpaas-magic-cookie-b78ef1cd37804b878fe1c9d83b168da3/9e218f';
+
+// Load private key from env var or file
+function loadPrivateKey() {
+  // First try environment variable
+  if (process.env.JAAS_PRIVATE_KEY) {
+    return process.env.JAAS_PRIVATE_KEY.replace(/\\n/g, '\n');
+  }
+  
+  // Then try file
+  const keyPath = process.env.PRIVATE_KEY_PATH || path.join(process.cwd(), 'key.pk');
+  try {
+    return fs.readFileSync(keyPath, 'utf8');
+  } catch (err) {
+    console.error('Failed to load private key:', err.message);
+    return null;
+  }
+}
 
 module.exports = (req, res) => {
   // Enable CORS
@@ -21,6 +34,15 @@ module.exports = (req, res) => {
   
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+  
+  // Load private key
+  const PRIVATE_KEY = loadPrivateKey();
+  if (!PRIVATE_KEY) {
+    return res.status(500).json({ 
+      error: 'Private key not configured',
+      message: 'Add JAAS_PRIVATE_KEY to environment variables'
+    });
   }
   
   const room = req.query.room || 'conference';
